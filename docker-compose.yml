@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: hub_grupos_estudo_db
+    environment:
+      POSTGRES_USER: hub_user
+      POSTGRES_PASSWORD: hub_pass
+      POSTGRES_DB: hub_grupos_estudo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

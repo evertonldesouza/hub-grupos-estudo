@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HubGruposEstudo.Application/HubGruposEstudo.Application.csproj" />
+    <Project Path="src/HubGruposEstudo.Domain/HubGruposEstudo.Domain.csproj" />
+    <Project Path="src/HubGruposEstudo.Infrastructure/HubGruposEstudo.Infrastructure.csproj" />
+    <Project Path="src/HubGruposEstudo.Web/HubGruposEstudo.Web.csproj" />
+  </Folder>
+</Solution>
