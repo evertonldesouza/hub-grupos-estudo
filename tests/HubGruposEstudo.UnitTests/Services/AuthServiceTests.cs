@@ -23,8 +23,8 @@ public class AuthServiceTests
         // Arrange
         var dto = new RegistrarUsuarioDto
         {
-            Nome = "Everton Souza",
-            Email = "everton@email.com",
+            Nome = "Usuario Teste",
+            Email = "usuario@teste.com",
             Senha = "123456"
         };
 
@@ -49,8 +49,8 @@ public class AuthServiceTests
         // Arrange
         var dto = new RegistrarUsuarioDto
         {
-            Nome = "Everton Souza",
-            Email = "everton@email.com",
+            Nome = "Usuario Teste",
+            Email = "usuario@teste.com",
             Senha = "123456"
         };
 
