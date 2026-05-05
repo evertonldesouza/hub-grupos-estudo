@@ -5,4 +5,7 @@
     <Project Path="src/HubGruposEstudo.Infrastructure/HubGruposEstudo.Infrastructure.csproj" />
     <Project Path="src/HubGruposEstudo.Web/HubGruposEstudo.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HubGruposEstudo.UnitTests/HubGruposEstudo.UnitTests.csproj" />
+  </Folder>
 </Solution>
