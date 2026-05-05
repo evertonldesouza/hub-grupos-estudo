@@ -24,4 +24,10 @@ public class UsuarioRepository : IUsuarioRepository
         await _context.Usuarios.AddAsync(usuario);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<Usuario?> BuscarPorEmailAsync(string email)
+    {
+        return await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == email);
+    }
 }
