@@ -17,7 +17,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IHabilidadeRepository, HabilidadeRepository>();
+builder.Services.AddScoped<ITrilhaRepository, TrilhaRepository>();
+builder.Services.AddScoped<IInscricaoRepository, InscricaoRepository>();
+builder.Services.AddScoped<ITrocaRepository, TrocaRepository>();
+builder.Services.AddScoped<IConquistaRepository, ConquistaRepository>();
+
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<HabilidadeService>();
+builder.Services.AddScoped<TrilhaService>();
+builder.Services.AddScoped<InscricaoService>();
+builder.Services.AddScoped<TrocaService>();
 
 var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
