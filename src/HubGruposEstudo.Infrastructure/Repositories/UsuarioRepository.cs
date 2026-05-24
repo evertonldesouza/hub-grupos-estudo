@@ -30,4 +30,13 @@ public class UsuarioRepository : IUsuarioRepository
         return await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == email);
     }
+
+    public async Task<Usuario?> BuscarPorIdAsync(Guid id)
+    {
+        return await _context.Usuarios
+            .Include(u => u.Habilidades)
+            .ThenInclude(uh => uh.Habilidade)
+            .Include(u => u.Conquistas)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
 }
