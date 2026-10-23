@@ -5,43 +5,42 @@ namespace HubGruposEstudo.Application.DTOs;
 public class CriarTrilhaDto
 {
     [Required(ErrorMessage = "Título é obrigatório")]
-    [MaxLength(200)]
+    [StringLength(200, MinimumLength = 3)]
     public string Titulo { get; set; } = null!;
 
     [Required(ErrorMessage = "Descrição é obrigatória")]
-    [MaxLength(2000)]
+    [StringLength(2000, MinimumLength = 3)]
     public string Descricao { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Nível de dificuldade é obrigatório")]
     public string NivelDificuldade { get; set; } = null!;
 
-    [Required]
     public Guid HabilidadeId { get; set; }
 }
 
 public class EtapaDto
 {
-    [Required]
-    [MaxLength(200)]
+    [Required(ErrorMessage = "Título da etapa é obrigatório")]
+    [StringLength(200, MinimumLength = 2)]
     public string Titulo { get; set; } = null!;
 
-    [Required]
-    [MaxLength(2000)]
+    [Required(ErrorMessage = "Descrição da etapa é obrigatória")]
+    [StringLength(2000, MinimumLength = 2)]
     public string Descricao { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Tipo da etapa é obrigatório")]
     public string Tipo { get; set; } = null!;
 
-    [Range(1, 600)]
+    [Range(1, 600, ErrorMessage = "Duração deve estar entre 1 e 600 minutos")]
     public int DuracaoEstimadaMin { get; set; }
 }
 
 public class CriarTrilhaComEtapasDto
 {
-    [Required]
+    [Required(ErrorMessage = "Dados da trilha são obrigatórios")]
     public CriarTrilhaDto Trilha { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Etapas são obrigatórias")]
     [MinLength(1, ErrorMessage = "Trilha precisa de pelo menos 1 etapa")]
     public List<EtapaDto> Etapas { get; set; } = new();
 }

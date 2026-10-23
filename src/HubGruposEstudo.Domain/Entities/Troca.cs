@@ -26,6 +26,16 @@ public class Troca
     public Troca(Guid usuarioAId, Guid usuarioBId, Guid habilidadeAId, Guid habilidadeBId,
                  Guid trilhaAId, Guid trilhaBId)
     {
+        if (usuarioAId == Guid.Empty || usuarioBId == Guid.Empty)
+            throw new ArgumentException("Os usuários da troca são obrigatórios");
+
+        if (usuarioAId == usuarioBId)
+            throw new InvalidOperationException("Não é possível criar uma troca consigo mesmo");
+
+        if (habilidadeAId == Guid.Empty || habilidadeBId == Guid.Empty ||
+            trilhaAId == Guid.Empty || trilhaBId == Guid.Empty)
+            throw new ArgumentException("Habilidades e trilhas são obrigatórias");
+
         Id = Guid.NewGuid();
         UsuarioAId = usuarioAId;
         UsuarioBId = usuarioBId;

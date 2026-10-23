@@ -33,6 +33,9 @@ public class TrilhaServiceTests
         _habilidadeRepositoryMock
             .Setup(r => r.BuscarPorIdAsync(habilidadeId))
             .ReturnsAsync(habilidade);
+        _usuarioRepositoryMock
+            .Setup(r => r.BuscarPorIdAsync(criadorId))
+            .ReturnsAsync(new Usuario("Everton", "everton@email.com", "hash"));
 
         var etapas = new List<(string, string, TipoEtapa, int)>
         {

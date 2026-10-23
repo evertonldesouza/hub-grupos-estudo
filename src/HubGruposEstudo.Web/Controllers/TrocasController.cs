@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HubGruposEstudo.Application.DTOs;
 using HubGruposEstudo.Application.Services;
+using HubGruposEstudo.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,74 +22,101 @@ public class TrocasController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Listar()
     {
-        var usuarioId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (!TryGetUsuarioId(out var usuarioId))
+            return Unauthorized(new { mensagem = "Usuário não identificado" });
+
         var trocas = await _service.ListarPorUsuarioAsync(usuarioId);
-
-        var result = trocas.Select(t => new TrocaResponseDto
-        {
-            Id = t.Id,
-            UsuarioAId = t.UsuarioAId,
-            UsuarioANome = t.UsuarioA.Nome,
-            UsuarioBId = t.UsuarioBId,
-            UsuarioBNome = t.UsuarioB.Nome,
-            HabilidadeANome = t.HabilidadeA.Nome,
-            HabilidadeBNome = t.HabilidadeB.Nome,
-            Status = t.Status.ToString(),
-            CriadoEm = t.CriadoEm
-        });
-
-        return Ok(result);
+        return Ok(trocas.Select(Mapear));
     }
 
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] CriarTrocaDto dto)
     {
+        if (!TryGetUsuarioId(out var usuarioAId))
+            return Unauthorized(new { mensagem = "Usuário não identificado" });
+
         try
         {
-            var usuarioAId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var troca = await _service.CriarAsync(
-                usuarioAId, dto.UsuarioBId,
-                dto.HabilidadeAId, dto.HabilidadeBId,
-                dto.TrilhaAId, dto.TrilhaBId);
+                usuarioAId,
+                dto.UsuarioBId,
+                dto.HabilidadeAId,
+                dto.HabilidadeBId,
+                dto.TrilhaAId,
+                dto.TrilhaBId);
 
-            return Created(string.Empty, new TrocaResponseDto
-            {
-                Id = troca.Id,
-                Status = troca.Status.ToString(),
-                CriadoEm = troca.CriadoEm
-            });
+            return CreatedAtAction(nameof(Listar), null, Mapear(troca));
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { mensagem = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { mensagem = ex.Message });
         }
     }
 
     [HttpPost("{id:guid}/ativar")]
     public async Task<IActionResult> Ativar(Guid id)
     {
+        if (!TryGetUsuarioId(out var usuarioId))
+            return Unauthorized(new { mensagem = "Usuário não identificado" });
+
         try
         {
-            await _service.AtivarAsync(id);
-            return Ok(new { mensagem = "Troca ativada" });
+            var troca = await _service.AtivarAsync(id, usuarioId);
+            return Ok(Mapear(troca));
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { mensagem = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { mensagem = ex.Message });
         }
     }
 
     [HttpPost("{id:guid}/concluir")]
     public async Task<IActionResult> Concluir(Guid id)
     {
+        if (!TryGetUsuarioId(out var usuarioId))
+            return Unauthorized(new { mensagem = "Usuário não identificado" });
+
         try
         {
-            await _service.ConcluirAsync(id);
-            return Ok(new { mensagem = "Troca concluída" });
+            var troca = await _service.ConcluirAsync(id, usuarioId);
+            return Ok(Mapear(troca));
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { mensagem = ex.Message });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { mensagem = ex.Message });
+        }
+    }
+
+    private bool TryGetUsuarioId(out Guid usuarioId)
+    {
+        return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out usuarioId);
+    }
+
+    private static TrocaResponseDto Mapear(Troca troca)
+    {
+        return new TrocaResponseDto
+        {
+            Id = troca.Id,
+            UsuarioAId = troca.UsuarioAId,
+            UsuarioANome = troca.UsuarioA?.Nome ?? string.Empty,
+            UsuarioBId = troca.UsuarioBId,
+            UsuarioBNome = troca.UsuarioB?.Nome ?? string.Empty,
+            HabilidadeANome = troca.HabilidadeA?.Nome ?? string.Empty,
+            HabilidadeBNome = troca.HabilidadeB?.Nome ?? string.Empty,
+            Status = troca.Status.ToString(),
+            CriadoEm = troca.CriadoEm
+        };
     }
 }

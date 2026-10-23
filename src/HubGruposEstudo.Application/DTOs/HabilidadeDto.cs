@@ -5,11 +5,11 @@ namespace HubGruposEstudo.Application.DTOs;
 public class CriarHabilidadeDto
 {
     [Required(ErrorMessage = "Nome é obrigatório")]
-    [MaxLength(100)]
+    [StringLength(100, MinimumLength = 2)]
     public string Nome { get; set; } = null!;
 
     [Required(ErrorMessage = "Categoria é obrigatória")]
-    [MaxLength(50)]
+    [StringLength(50, MinimumLength = 2)]
     public string Categoria { get; set; } = null!;
 }
 

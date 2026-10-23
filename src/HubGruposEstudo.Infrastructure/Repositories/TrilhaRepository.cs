@@ -17,9 +17,11 @@ public class TrilhaRepository : ITrilhaRepository
     public async Task<List<Trilha>> ListarAsync()
     {
         return await _context.Trilhas
+            .AsNoTracking()
             .Include(t => t.Habilidade)
             .Include(t => t.Criador)
             .Include(t => t.Etapas.OrderBy(e => e.Ordem))
+            .OrderByDescending(t => t.CriadoEm)
             .ToListAsync();
     }
 
@@ -35,9 +37,12 @@ public class TrilhaRepository : ITrilhaRepository
     public async Task<List<Trilha>> BuscarPorHabilidadeAsync(Guid habilidadeId)
     {
         return await _context.Trilhas
+            .AsNoTracking()
             .Include(t => t.Habilidade)
             .Include(t => t.Criador)
+            .Include(t => t.Etapas.OrderBy(e => e.Ordem))
             .Where(t => t.HabilidadeId == habilidadeId)
+            .OrderByDescending(t => t.CriadoEm)
             .ToListAsync();
     }
 

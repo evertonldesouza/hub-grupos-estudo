@@ -16,9 +16,12 @@
 
 ## Commands
 ```bash
-# rodar com banco local
-docker-compose up -d
-dotnet run --project src/HubGruposEstudo.Web
+# subir banco + API
+docker compose up --build
+
+# ou rodar somente o banco e a API localmente
+docker compose up -d postgres
+dotnet run --project src/HubGruposEstudo.Web --launch-profile http
 
 # testes
 dotnet test tests/HubGruposEstudo.UnitTests
