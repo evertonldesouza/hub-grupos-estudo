@@ -1,5 +1,4 @@
 using HubGruposEstudo.Domain.Entities;
-using HubGruposEstudo.Domain.Enums;
 using HubGruposEstudo.Domain.Interfaces;
 
 namespace HubGruposEstudo.Application.Services;
@@ -24,6 +23,9 @@ public class TrocaService
 
     public async Task<List<Troca>> ListarPorUsuarioAsync(Guid usuarioId)
     {
+        if (usuarioId == Guid.Empty)
+            return new List<Troca>();
+
         return await _trocaRepository.ListarPorUsuarioAsync(usuarioId);
     }
 
@@ -31,44 +33,97 @@ public class TrocaService
         Guid habilidadeAId, Guid habilidadeBId,
         Guid trilhaAId, Guid trilhaBId)
     {
+        ValidarGuid(usuarioAId, "Usuário A");
+        ValidarGuid(usuarioBId, "Usuário B");
+        ValidarGuid(habilidadeAId, "Habilidade A");
+        ValidarGuid(habilidadeBId, "Habilidade B");
+        ValidarGuid(trilhaAId, "Trilha A");
+        ValidarGuid(trilhaBId, "Trilha B");
+
+        if (usuarioAId == usuarioBId)
+            throw new InvalidOperationException("Não é possível criar uma troca consigo mesmo");
+
+        var usuarioA = await _usuarioRepository.BuscarPorIdAsync(usuarioAId);
+        if (usuarioA is null)
+            throw new InvalidOperationException("Usuário A não encontrado");
+
         var usuarioB = await _usuarioRepository.BuscarPorIdAsync(usuarioBId);
         if (usuarioB is null)
-            throw new InvalidOperationException("Usuário não encontrado");
+            throw new InvalidOperationException("Usuário B não encontrado");
 
-        var habA = await _habilidadeRepository.BuscarPorIdAsync(habilidadeAId);
-        if (habA is null)
+        var habilidadeA = await _habilidadeRepository.BuscarPorIdAsync(habilidadeAId);
+        if (habilidadeA is null)
             throw new InvalidOperationException("Habilidade A não encontrada");
 
-        var habB = await _habilidadeRepository.BuscarPorIdAsync(habilidadeBId);
-        if (habB is null)
+        var habilidadeB = await _habilidadeRepository.BuscarPorIdAsync(habilidadeBId);
+        if (habilidadeB is null)
             throw new InvalidOperationException("Habilidade B não encontrada");
 
+        var trilhaA = await _trilhaRepository.BuscarPorIdAsync(trilhaAId);
+        if (trilhaA is null)
+            throw new InvalidOperationException("Trilha A não encontrada");
+
+        var trilhaB = await _trilhaRepository.BuscarPorIdAsync(trilhaBId);
+        if (trilhaB is null)
+            throw new InvalidOperationException("Trilha B não encontrada");
+
+        if (trilhaA.CriadorId != usuarioAId)
+            throw new UnauthorizedAccessException("A trilha A não pertence ao usuário A");
+
+        if (trilhaB.CriadorId != usuarioBId)
+            throw new InvalidOperationException("A trilha B deve pertencer ao usuário B");
+
+        if (trilhaA.HabilidadeId != habilidadeAId)
+            throw new InvalidOperationException("A habilidade A não corresponde à trilha A");
+
+        if (trilhaB.HabilidadeId != habilidadeBId)
+            throw new InvalidOperationException("A habilidade B não corresponde à trilha B");
+
         var troca = new Troca(usuarioAId, usuarioBId, habilidadeAId, habilidadeBId,
-                              trilhaAId, trilhaBId);
+            trilhaAId, trilhaBId);
 
         await _trocaRepository.AdicionarAsync(troca);
         return troca;
     }
 
-    public async Task<Troca> AtivarAsync(Guid trocaId)
+    public async Task<Troca> AtivarAsync(Guid trocaId, Guid usuarioId)
     {
-        var troca = await _trocaRepository.BuscarPorIdAsync(trocaId);
-        if (troca is null)
-            throw new InvalidOperationException("Troca não encontrada");
+        var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
+
+        if (troca.UsuarioBId != usuarioId)
+            throw new UnauthorizedAccessException("Apenas o usuário B pode aceitar a troca");
 
         troca.Ativar();
         await _trocaRepository.AtualizarAsync(troca);
         return troca;
     }
 
-    public async Task<Troca> ConcluirAsync(Guid trocaId)
+    public async Task<Troca> ConcluirAsync(Guid trocaId, Guid usuarioId)
     {
+        var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
+        troca.Concluir();
+        await _trocaRepository.AtualizarAsync(troca);
+        return troca;
+    }
+
+    private async Task<Troca> ObterTrocaDoUsuarioAsync(Guid trocaId, Guid usuarioId)
+    {
+        ValidarGuid(trocaId, "Troca");
+        ValidarGuid(usuarioId, "Usuário");
+
         var troca = await _trocaRepository.BuscarPorIdAsync(trocaId);
         if (troca is null)
             throw new InvalidOperationException("Troca não encontrada");
 
-        troca.Concluir();
-        await _trocaRepository.AtualizarAsync(troca);
+        if (troca.UsuarioAId != usuarioId && troca.UsuarioBId != usuarioId)
+            throw new UnauthorizedAccessException("Troca não pertence ao usuário");
+
         return troca;
+    }
+
+    private static void ValidarGuid(Guid value, string nome)
+    {
+        if (value == Guid.Empty)
+            throw new InvalidOperationException($"{nome} é obrigatório");
     }
 }

@@ -32,6 +32,14 @@ public class Trilha
 
     public void AdicionarEtapa(Etapa etapa)
     {
+        ArgumentNullException.ThrowIfNull(etapa);
+
+        if (etapa.TrilhaId != Id)
+            throw new InvalidOperationException("A etapa não pertence à trilha");
+
+        if (Etapas.Any(e => e.Ordem == etapa.Ordem))
+            throw new InvalidOperationException("A ordem da etapa já está em uso");
+
         Etapas.Add(etapa);
     }
 }
