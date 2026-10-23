@@ -3,13 +3,36 @@ services:
     image: postgres:16
     container_name: hub_grupos_estudo_db
     environment:
-      POSTGRES_USER: hub_user
-      POSTGRES_PASSWORD: hub_pass
-      POSTGRES_DB: hub_grupos_estudo
+      POSTGRES_USER: ${POSTGRES_USER:-hub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hub_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-hub_grupos_estudo}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-hub_grupos_estudo};Username=${POSTGRES_USER:-hub_user};Password=${POSTGRES_PASSWORD:-hub_pass}
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-chave-local-apenas-troque-em-producao-2026}
+      BootstrapAdmin__Email: ${ADMIN_EMAIL:-admin@hub.local}
+      BootstrapAdmin__Password: ${ADMIN_PASSWORD:-Admin@123456}
+      Database__ApplyMigrations: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
 
 volumes:
   postgres_data:

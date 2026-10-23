@@ -9,5 +9,6 @@ public class LoginDto
     public string Email { get; set; } = null!;
 
     [Required(ErrorMessage = "Senha é obrigatória")]
+    [MinLength(6, ErrorMessage = "Senha deve ter no mínimo 6 caracteres")]
     public string Senha { get; set; } = null!;
 }

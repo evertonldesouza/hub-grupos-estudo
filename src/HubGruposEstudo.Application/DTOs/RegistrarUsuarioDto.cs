@@ -5,11 +5,13 @@ namespace HubGruposEstudo.Application.DTOs;
 public class RegistrarUsuarioDto
 {
     [Required(ErrorMessage = "Nome é obrigatório")]
-    [MaxLength(100, ErrorMessage = "Nome pode ter no máximo 100 caracteres")]
+    [StringLength(100, MinimumLength = 2,
+        ErrorMessage = "Nome deve ter entre 2 e 100 caracteres")]
     public string Nome { get; set; } = null!;
 
     [Required(ErrorMessage = "Email é obrigatório")]
     [EmailAddress(ErrorMessage = "Email inválido")]
+    [MaxLength(150)]
     public string Email { get; set; } = null!;
 
     [Required(ErrorMessage = "Senha é obrigatória")]

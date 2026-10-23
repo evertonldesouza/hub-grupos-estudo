@@ -1,20 +1,61 @@
+using System.Security.Claims;
+using System.Text;
 using HubGruposEstudo.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using HubGruposEstudo.Application.Services;
 using HubGruposEstudo.Domain.Interfaces;
 using HubGruposEstudo.Infrastructure.Repositories;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtKey = builder.Configuration["Jwt:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "Jwt:SecretKey deve ser configurada e possuir pelo menos 32 caracteres. " +
+        "Use a variável de ambiente Jwt__SecretKey em ambientes não locais.");
+}
+
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Hub de Grupos de Estudo",
+        Version = "v1",
+        Description = "API para criação de trilhas, progresso de estudos e trocas de conhecimento."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Informe apenas o token JWT. Exemplo: Bearer {token}"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection não está configurada");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IHabilidadeRepository, HabilidadeRepository>();
@@ -24,12 +65,17 @@ builder.Services.AddScoped<ITrocaRepository, TrocaRepository>();
 builder.Services.AddScoped<IConquistaRepository, ConquistaRepository>();
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<HabilidadeService>();
 builder.Services.AddScoped<TrilhaService>();
 builder.Services.AddScoped<InscricaoService>();
 builder.Services.AddScoped<TrocaService>();
 
-var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+    throw new InvalidOperationException("Jwt:Issuer e Jwt:Audience devem ser configurados");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -39,13 +85,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            RequireExpirationTime = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            NameClaimType = ClaimTypes.NameIdentifier,
+            RoleClaimType = ClaimTypes.Role,
+            ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
+
+var useHttpsRedirection = false;
+if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHttps))
+    useHttpsRedirection = configuredHttps;
+
+if (useHttpsRedirection)
+    app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+    app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -53,9 +116,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+app.MapGet("/health", async (AppDbContext db) =>
+{
+    try
+    {
+        var conectado = await db.Database.CanConnectAsync();
+        return conectado
+            ? (IResult)Results.Ok(new { status = "ok" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    catch
+    {
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+}).AllowAnonymous();
+
 app.Run();
+
+public partial class Program { }

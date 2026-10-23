@@ -1,11 +1,13 @@
 using HubGruposEstudo.Application.DTOs;
 using HubGruposEstudo.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HubGruposEstudo.Web.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;
@@ -21,7 +23,8 @@ public class AuthController : ControllerBase
         try
         {
             await _authService.RegistrarAsync(dto);
-            return Created(string.Empty, new { mensagem = "Usuário registrado com sucesso" });
+            return StatusCode(StatusCodes.Status201Created,
+                new { mensagem = "Usuário registrado com sucesso" });
         }
         catch (InvalidOperationException ex)
         {
@@ -35,7 +38,7 @@ public class AuthController : ControllerBase
         try
         {
             var token = await _authService.LoginAsync(dto);
-            return Ok(new { token });
+            return Ok(new { token, tipo = "Bearer" });
         }
         catch (UnauthorizedAccessException ex)
         {
