@@ -35,6 +35,9 @@ public class Usuario
 
     public void AdicionarXp(int quantidade)
     {
+        if (quantidade <= 0)
+            throw new ArgumentOutOfRangeException(nameof(quantidade), "A quantidade de XP deve ser positiva");
+
         Xp += quantidade;
         Nivel = (Xp / 100) + 1;
     }
@@ -42,5 +45,10 @@ public class Usuario
     public void AtualizarBio(string bio)
     {
         Bio = bio;
+    }
+
+    public void TornarAdministrador()
+    {
+        Perfil = PerfilUsuario.Administrador;
     }
 }

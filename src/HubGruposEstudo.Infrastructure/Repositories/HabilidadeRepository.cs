@@ -16,7 +16,10 @@ public class HabilidadeRepository : IHabilidadeRepository
 
     public async Task<List<Habilidade>> ListarAsync()
     {
-        return await _context.Habilidades.OrderBy(h => h.Nome).ToListAsync();
+        return await _context.Habilidades
+            .AsNoTracking()
+            .OrderBy(h => h.Nome)
+            .ToListAsync();
     }
 
     public async Task<Habilidade?> BuscarPorIdAsync(Guid id)
@@ -32,6 +35,8 @@ public class HabilidadeRepository : IHabilidadeRepository
 
     public async Task<bool> ExistePorNomeAsync(string nome)
     {
-        return await _context.Habilidades.AnyAsync(h => h.Nome == nome);
+        var nomeNormalizado = nome.Trim().ToUpper();
+        return await _context.Habilidades
+            .AnyAsync(h => h.Nome.ToUpper() == nomeNormalizado);
     }
 }

@@ -18,6 +18,7 @@ public class InscricaoRepository : IInscricaoRepository
     {
         return await _context.Inscricoes
             .Include(i => i.Trilha)
+            .ThenInclude(t => t.Etapas.OrderBy(e => e.Ordem))
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 
@@ -30,9 +31,11 @@ public class InscricaoRepository : IInscricaoRepository
     public async Task<List<Inscricao>> ListarPorUsuarioAsync(Guid usuarioId)
     {
         return await _context.Inscricoes
+            .AsNoTracking()
             .Include(i => i.Trilha)
-            .ThenInclude(t => t.Habilidade)
+            .ThenInclude(t => t.Etapas.OrderBy(e => e.Ordem))
             .Where(i => i.UsuarioId == usuarioId)
+            .OrderByDescending(i => i.DataInicio)
             .ToListAsync();
     }
 

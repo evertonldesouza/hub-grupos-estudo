@@ -14,9 +14,27 @@ public class UsuarioRepository : IUsuarioRepository
         _context = context;
     }
 
+    public async Task<List<Usuario>> ListarAsync(string? busca = null)
+    {
+        var query = _context.Usuarios.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(busca))
+        {
+            var termo = busca.Trim().ToLower();
+            query = query.Where(u => u.Nome.ToLower().Contains(termo));
+        }
+
+        return await query
+            .OrderBy(u => u.Nome)
+            .Take(50)
+            .ToListAsync();
+    }
+
     public async Task<bool> ExistePorEmailAsync(string email)
     {
-        return await _context.Usuarios.AnyAsync(u => u.Email == email);
+        var emailNormalizado = email.Trim().ToLower();
+        return await _context.Usuarios
+            .AnyAsync(u => u.Email.ToLower() == emailNormalizado);
     }
 
     public async Task AdicionarAsync(Usuario usuario)
@@ -27,8 +45,9 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<Usuario?> BuscarPorEmailAsync(string email)
     {
+        var emailNormalizado = email.Trim().ToLower();
         return await _context.Usuarios
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == emailNormalizado);
     }
 
     public async Task<Usuario?> BuscarPorIdAsync(Guid id)

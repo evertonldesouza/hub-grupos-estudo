@@ -17,6 +17,7 @@ public class TrocaRepository : ITrocaRepository
     public async Task<List<Troca>> ListarPorUsuarioAsync(Guid usuarioId)
     {
         return await _context.Trocas
+            .AsNoTracking()
             .Include(t => t.UsuarioA)
             .Include(t => t.UsuarioB)
             .Include(t => t.HabilidadeA)
