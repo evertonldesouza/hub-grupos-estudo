@@ -113,7 +113,8 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
+if (!app.Environment.IsEnvironment("Testing"))
+    await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
 
 var useHttpsRedirection = false;
 if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHttps))
