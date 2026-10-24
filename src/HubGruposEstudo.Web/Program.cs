@@ -8,6 +8,7 @@ using HubGruposEstudo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -114,7 +115,15 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))
+{
     await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
+}
+else
+{
+    using var testScope = app.Services.CreateScope();
+    var testContext = testScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await testContext.Database.EnsureCreatedAsync();
+}
 
 var useHttpsRedirection = false;
 if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHttps))
