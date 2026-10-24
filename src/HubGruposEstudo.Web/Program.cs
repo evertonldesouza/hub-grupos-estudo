@@ -122,7 +122,7 @@ else
 {
     using var testScope = app.Services.CreateScope();
     var testContext = testScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await testContext.Database.EnsureCreatedAsync();
+    await testContext.Database.MigrateAsync();
 }
 
 var useHttpsRedirection = false;
