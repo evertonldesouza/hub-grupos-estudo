@@ -40,14 +40,4 @@ jobs:
         run: dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 
       - name: Test
-        shell: bash
-        run: |
-          set +e
-          dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-restore --verbosity normal 2>&1 | tee "$RUNNER_TEMP/test-output.log"
-          test_status=${PIPESTATUS[0]}
-          if [ "$test_status" -ne 0 ]; then
-            while IFS= read -r line; do
-              echo "::error title=dotnet test::$line"
-            done < <(grep -E -i 'falha ao iniciar|failed|exception|xunit|test run|error' "$RUNNER_TEMP/test-output.log" | tail -n 100)
-          fi
-          exit "$test_status"
+        run: dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-restore --verbosity normal
