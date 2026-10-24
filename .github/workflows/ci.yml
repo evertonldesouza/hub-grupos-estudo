@@ -40,4 +40,14 @@ jobs:
         run: dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-build --verbosity normal
+        shell: bash
+        run: |
+          set +e
+          dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-build --verbosity detailed 2>&1 | tee "$RUNNER_TEMP/test-output.log"
+          test_status=${PIPESTATUS[0]}
+          if [ "$test_status" -ne 0 ]; then
+            while IFS= read -r line; do
+              echo "::error title=dotnet test::$line"
+            done < <(tail -n 120 "$RUNNER_TEMP/test-output.log")
+          fi
+          exit "$test_status"
