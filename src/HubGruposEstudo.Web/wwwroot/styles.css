@@ -157,6 +157,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--teal); box-shado
 .user-skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
 .user-skills span { border-radius: 99px; padding: 3px 6px; color: var(--teal-dark); background: var(--teal-soft); font-size: .58rem; }
 .trade-card { display: grid; grid-template-columns: 1fr auto; }
+.trade-create-panel { margin-top: 20px; }
+.trade-submit { display: flex; align-items: end; }
+.trade-submit .button { width: 100%; }
 .trade-status { display: inline-block; margin-top: 6px; border-radius: 99px; padding: 4px 7px; color: #92701a; background: #fff4cf; font-size: .6rem; font-weight: 800; }
 .trade-status.Ativa { color: var(--teal-dark); background: var(--teal-soft); }
 .trade-status.Concluida { color: #277147; background: #e2f5e9; }
