@@ -48,6 +48,6 @@ jobs:
           if [ "$test_status" -ne 0 ]; then
             while IFS= read -r line; do
               echo "::error title=dotnet test::$line"
-            done < <(tail -n 120 "$RUNNER_TEMP/test-output.log")
+            done < <(grep -E -i 'system\\.|exception|failed|error|unable|cannot|npgsql|hostaborted' "$RUNNER_TEMP/test-output.log" | head -n 120)
           fi
           exit "$test_status"
