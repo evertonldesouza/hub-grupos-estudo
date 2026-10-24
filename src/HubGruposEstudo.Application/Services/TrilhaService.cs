@@ -19,17 +19,21 @@ public class TrilhaService
         _usuarioRepository = usuarioRepository;
     }
 
-    public async Task<List<Trilha>> ListarAsync()
+    public async Task<List<Trilha>> ListarAsync(int pagina = 1, int tamanhoPagina = 20)
     {
-        return await _trilhaRepository.ListarAsync();
+        return await _trilhaRepository.ListarAsync(pagina, tamanhoPagina);
     }
 
-    public async Task<List<Trilha>> BuscarPorHabilidadeAsync(Guid habilidadeId)
+    public async Task<List<Trilha>> BuscarPorHabilidadeAsync(
+        Guid habilidadeId,
+        int pagina = 1,
+        int tamanhoPagina = 20)
     {
         if (habilidadeId == Guid.Empty)
             return new List<Trilha>();
 
-        return await _trilhaRepository.BuscarPorHabilidadeAsync(habilidadeId);
+        return await _trilhaRepository.BuscarPorHabilidadeAsync(
+            habilidadeId, pagina, tamanhoPagina);
     }
 
     public async Task<Trilha?> BuscarPorIdAsync(Guid id)

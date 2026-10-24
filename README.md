@@ -36,8 +36,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-A API ficará disponível em:
+A aplicação ficará disponível em:
 
+- Interface web: <http://localhost:8080>
 - Swagger: <http://localhost:8080/swagger>
 - Saúde: <http://localhost:8080/health>
 - API: <http://localhost:8080/api>
@@ -134,7 +135,7 @@ dotnet test tests/HubGruposEstudo.UnitTests
 dotnet build HubGruposEstudo.slnx
 ```
 
-Os testes de serviço cobrem autenticação, habilidades, trilhas, inscrições, progresso e regras de acesso. O ambiente desta execução não possui o SDK do .NET instalado; por isso a validação local deve ser feita com os comandos acima ou via Docker/CI.
+Os testes de serviço cobrem autenticação, habilidades, trilhas, inscrições, progresso, perfil e regras de acesso. Há também testes de integração para health check, cadastro e login usando PostgreSQL. O CI sobe um PostgreSQL temporário antes de executar a suíte.
 
 ## Próximos passos naturais
 

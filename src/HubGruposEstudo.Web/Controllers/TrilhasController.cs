@@ -21,11 +21,14 @@ public class TrilhasController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Listar([FromQuery] Guid? habilidadeId)
+    public async Task<IActionResult> Listar(
+        [FromQuery] Guid? habilidadeId,
+        [FromQuery] int pagina = 1,
+        [FromQuery] int tamanhoPagina = 20)
     {
         var trilhas = habilidadeId.HasValue
-            ? await _service.BuscarPorHabilidadeAsync(habilidadeId.Value)
-            : await _service.ListarAsync();
+            ? await _service.BuscarPorHabilidadeAsync(habilidadeId.Value, pagina, tamanhoPagina)
+            : await _service.ListarAsync(pagina, tamanhoPagina);
 
         return Ok(trilhas.Select(Mapear));
     }

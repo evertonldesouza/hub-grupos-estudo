@@ -117,6 +117,7 @@ function renderAll() {
   renderTracks();
   renderUsers();
   renderTrades();
+  renderTradeForm();
   renderProfile();
 }
 
@@ -235,6 +236,48 @@ function renderTrades() {
   }).join('');
 }
 
+function renderTradeForm() {
+  const userSelect = $('#trade-user-select');
+  const myTrackSelect = $('#trade-my-track');
+  const theirTrackSelect = $('#trade-their-track');
+  if (!userSelect || !myTrackSelect || !theirTrackSelect) return;
+
+  const otherUsers = state.users.filter(user => user.id !== state.user?.id);
+  userSelect.innerHTML = otherUsers.length
+    ? otherUsers.map(user => `<option value="${user.id}">${escapeHtml(user.nome)}</option>`).join('')
+    : '<option value="">Nenhuma outra pessoa disponível</option>';
+
+  const myTracks = state.tracks.filter(track => track.criadorId === state.user?.id);
+  myTrackSelect.innerHTML = myTracks.length
+    ? myTracks.map(track => `<option value="${track.id}">${escapeHtml(track.titulo)}</option>`).join('')
+    : '<option value="">Crie uma trilha primeiro</option>';
+
+  updateTradeTrackOptions();
+}
+
+function updateTradeTrackOptions() {
+  const userId = $('#trade-user-select')?.value;
+  const theirTrackSelect = $('#trade-their-track');
+  const myTrackSelect = $('#trade-my-track');
+  const mySkillSelect = $('#trade-my-skill');
+  const theirSkillSelect = $('#trade-their-skill');
+  if (!theirTrackSelect || !myTrackSelect || !mySkillSelect || !theirSkillSelect) return;
+
+  const theirTracks = state.tracks.filter(track => track.criadorId === userId);
+  theirTrackSelect.innerHTML = theirTracks.length
+    ? theirTracks.map(track => `<option value="${track.id}">${escapeHtml(track.titulo)}</option>`).join('')
+    : '<option value="">Essa pessoa ainda não criou trilhas</option>';
+
+  const myTrack = state.tracks.find(track => track.id === myTrackSelect.value);
+  const theirTrack = state.tracks.find(track => track.id === theirTrackSelect.value);
+  mySkillSelect.innerHTML = myTrack
+    ? `<option value="${myTrack.habilidadeId}">${escapeHtml(myTrack.habilidadeNome)}</option>`
+    : '<option value="">Escolha uma trilha sua</option>';
+  theirSkillSelect.innerHTML = theirTrack
+    ? `<option value="${theirTrack.habilidadeId}">${escapeHtml(theirTrack.habilidadeNome)}</option>`
+    : '<option value="">Escolha uma trilha da pessoa</option>';
+}
+
 function renderProfile() {
   const user = state.user || {};
   const name = user.nome || 'Estudante';
@@ -327,6 +370,24 @@ async function handleTradeAction(button) {
   } catch (error) { showToast(error.message, true); }
 }
 
+async function handleCreateTrade(event) {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(event.currentTarget));
+  const body = {
+    usuarioBId: data.usuarioBId,
+    habilidadeAId: data.habilidadeAId,
+    habilidadeBId: data.habilidadeBId,
+    trilhaAId: data.trilhaAId,
+    trilhaBId: data.trilhaBId
+  };
+
+  try {
+    await api('/api/trocas', { method: 'POST', body: JSON.stringify(body) });
+    await refreshData();
+    showToast('Proposta enviada para a comunidade.');
+  } catch (error) { showToast(error.message, true); }
+}
+
 async function handleProfile(event) {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -358,6 +419,10 @@ function bindEvents() {
   $('#register-form').addEventListener('submit', handleRegister);
   $('#logout-button').addEventListener('click', () => logout());
   $('#create-track-form').addEventListener('submit', handleCreateTrack);
+  $('#trade-form').addEventListener('submit', handleCreateTrade);
+  $('#trade-user-select').addEventListener('change', updateTradeTrackOptions);
+  $('#trade-my-track').addEventListener('change', updateTradeTrackOptions);
+  $('#trade-their-track').addEventListener('change', updateTradeTrackOptions);
   $('#toggle-create-track').addEventListener('click', () => $('#create-track-panel').classList.toggle('hidden'));
   $('#close-create-track').addEventListener('click', () => $('#create-track-panel').classList.add('hidden'));
   $('#profile-form').addEventListener('submit', handleProfile);
