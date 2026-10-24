@@ -63,6 +63,7 @@ builder.Services.AddScoped<ITrilhaRepository, TrilhaRepository>();
 builder.Services.AddScoped<IInscricaoRepository, InscricaoRepository>();
 builder.Services.AddScoped<ITrocaRepository, TrocaRepository>();
 builder.Services.AddScoped<IConquistaRepository, ConquistaRepository>();
+builder.Services.AddScoped<IUsuarioHabilidadeRepository, UsuarioHabilidadeRepository>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UsuarioService>();
@@ -70,6 +71,7 @@ builder.Services.AddScoped<HabilidadeService>();
 builder.Services.AddScoped<TrilhaService>();
 builder.Services.AddScoped<InscricaoService>();
 builder.Services.AddScoped<TrocaService>();
+builder.Services.AddScoped<ConquistaService>();
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -107,6 +109,9 @@ if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHt
 if (useHttpsRedirection)
     app.UseHttpsRedirection();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 
@@ -134,6 +139,8 @@ app.MapGet("/health", async (AppDbContext db) =>
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 }).AllowAnonymous();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

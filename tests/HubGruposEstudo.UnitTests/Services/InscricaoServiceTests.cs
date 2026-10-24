@@ -9,6 +9,7 @@ public class InscricaoServiceTests
     private readonly Mock<IInscricaoRepository> _inscricaoRepositoryMock;
     private readonly Mock<ITrilhaRepository> _trilhaRepositoryMock;
     private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock;
+    private readonly Mock<IConquistaRepository> _conquistaRepositoryMock;
     private readonly Application.Services.InscricaoService _service;
 
     public InscricaoServiceTests()
@@ -16,10 +17,15 @@ public class InscricaoServiceTests
         _inscricaoRepositoryMock = new Mock<IInscricaoRepository>();
         _trilhaRepositoryMock = new Mock<ITrilhaRepository>();
         _usuarioRepositoryMock = new Mock<IUsuarioRepository>();
+        _conquistaRepositoryMock = new Mock<IConquistaRepository>();
+        _usuarioRepositoryMock
+            .Setup(r => r.AtualizarAsync(It.IsAny<Usuario>()))
+            .Returns(Task.CompletedTask);
         _service = new Application.Services.InscricaoService(
             _inscricaoRepositoryMock.Object,
             _trilhaRepositoryMock.Object,
-            _usuarioRepositoryMock.Object);
+            _usuarioRepositoryMock.Object,
+            _conquistaRepositoryMock.Object);
     }
 
     [Fact]

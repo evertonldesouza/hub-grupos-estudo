@@ -7,7 +7,7 @@ API para uma comunidade de aprendizagem em que pessoas criam trilhas, acompanham
 - **Infrastructure**: PostgreSQL, Entity Framework Core, migrações e repositórios;
 - **Web**: API REST, autenticação JWT e Swagger.
 
-> O repositório entrega o backend de um MVP. Ainda não há uma interface web/mobile; o Swagger e os endpoints REST permitem validar a ideia e servir de base para o frontend.
+> O repositório entrega um MVP completo: a API REST e uma interface web leve servida pela própria aplicação. O frontend não usa um framework adicional, o que mantém o primeiro protótipo simples de executar e fácil de evoluir.
 
 ## Funcionalidades disponíveis
 
@@ -15,10 +15,13 @@ API para uma comunidade de aprendizagem em que pessoas criam trilhas, acompanham
 - autenticação e autorização por JWT;
 - catálogo inicial de habilidades;
 - descoberta de usuários por nome sem expor email ou senha;
+- perfil editável e habilidades que cada pessoa ensina;
 - criação de trilhas com etapas ordenadas;
 - consulta de trilhas por habilidade;
 - inscrição, avanço de etapa e conclusão com percentual de progresso;
-- criação e fluxo protegido de trocas entre dois usuários;
+- XP, níveis e conquistas concedidos por eventos de estudo;
+- criação, aceite, recusa, cancelamento e conclusão de trocas entre usuários;
+- interface web responsiva servida em `/`;
 - migração automática do banco e dados iniciais no primeiro start;
 - endpoint `GET /health` para verificar a conexão com o PostgreSQL;
 - Swagger com botão **Authorize** para testar endpoints protegidos.
@@ -135,8 +138,7 @@ Os testes de serviço cobrem autenticação, habilidades, trilhas, inscrições,
 
 ## Próximos passos naturais
 
-- frontend web responsivo consumindo a API;
-- perfil do usuário e gerenciamento de habilidades que ele ensina;
-- notificações e aceite/recusa de trocas;
-- conquistas e XP ligados a eventos reais de estudo;
-- testes de integração com PostgreSQL e observabilidade em produção.
+- notificações em tempo real ou por e-mail;
+- criação de trocas diretamente pela interface, com seleção guiada de usuários e trilhas;
+- testes de integração com PostgreSQL;
+- paginação, observabilidade e limites de uso para produção.

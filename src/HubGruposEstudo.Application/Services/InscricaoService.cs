@@ -8,14 +8,18 @@ public class InscricaoService
     private readonly IInscricaoRepository _inscricaoRepository;
     private readonly ITrilhaRepository _trilhaRepository;
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IConquistaRepository _conquistaRepository;
 
-    public InscricaoService(IInscricaoRepository inscricaoRepository,
-                            ITrilhaRepository trilhaRepository,
-                            IUsuarioRepository usuarioRepository)
+    public InscricaoService(
+        IInscricaoRepository inscricaoRepository,
+        ITrilhaRepository trilhaRepository,
+        IUsuarioRepository usuarioRepository,
+        IConquistaRepository conquistaRepository)
     {
         _inscricaoRepository = inscricaoRepository;
         _trilhaRepository = trilhaRepository;
         _usuarioRepository = usuarioRepository;
+        _conquistaRepository = conquistaRepository;
     }
 
     public async Task<List<Inscricao>> ListarPorUsuarioAsync(Guid usuarioId)
@@ -52,6 +56,8 @@ public class InscricaoService
         var inscricao = new Inscricao(usuarioId, trilhaId);
         inscricao.AssociarTrilha(trilha);
         await _inscricaoRepository.AdicionarAsync(inscricao);
+
+        await ConcederRecompensasAsync(usuarioId, 10, "PRIMEIRA_INSCRICAO");
         return inscricao;
     }
 
@@ -62,6 +68,20 @@ public class InscricaoService
 
         inscricao.AvancarEtapa(totalEtapas);
         await _inscricaoRepository.AtualizarAsync(inscricao);
+
+        if (inscricao.Concluida)
+        {
+            await ConcederRecompensasAsync(
+                usuarioId,
+                60,
+                "PRIMEIRO_AVANCO",
+                "PRIMEIRA_TRILHA_CONCLUIDA");
+        }
+        else
+        {
+            await ConcederRecompensasAsync(usuarioId, 10, "PRIMEIRO_AVANCO");
+        }
+
         return inscricao;
     }
 
@@ -70,7 +90,36 @@ public class InscricaoService
         var inscricao = await ObterInscricaoDoUsuarioAsync(usuarioId, inscricaoId);
         inscricao.Concluir();
         await _inscricaoRepository.AtualizarAsync(inscricao);
+        await ConcederRecompensasAsync(usuarioId, 50, "PRIMEIRA_TRILHA_CONCLUIDA");
         return inscricao;
+    }
+
+    private async Task ConcederRecompensasAsync(
+        Guid usuarioId,
+        int xp,
+        params string[] criterios)
+    {
+        var usuario = await _usuarioRepository.BuscarPorIdAsync(usuarioId);
+        if (usuario is not null && xp > 0)
+        {
+            usuario.AdicionarXp(xp);
+            await _usuarioRepository.AtualizarAsync(usuario);
+        }
+
+        foreach (var criterio in criterios.Distinct())
+        {
+            var conquista = await _conquistaRepository.BuscarPorCriterioAsync(criterio);
+            if (conquista is null)
+                continue;
+
+            var jaConquistou = await _conquistaRepository
+                .BuscarDoUsuarioAsync(usuarioId, conquista.Id);
+            if (jaConquistou is null)
+            {
+                await _conquistaRepository.AdicionarConquistaUsuarioAsync(
+                    new ConquistaUsuario(usuarioId, conquista.Id));
+            }
+        }
     }
 
     private async Task<Inscricao> ObterInscricaoDoUsuarioAsync(Guid usuarioId, Guid inscricaoId)

@@ -11,6 +11,7 @@ public class TrocaServiceTests
     private readonly Mock<IHabilidadeRepository> _habilidadeRepositoryMock = new();
     private readonly Mock<ITrilhaRepository> _trilhaRepositoryMock = new();
     private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock = new();
+    private readonly Mock<IConquistaRepository> _conquistaRepositoryMock = new();
 
     [Fact]
     public async Task CriarAsync_DeveCriarTroca_QuandoRecursosPertencemAosUsuarios()
@@ -87,7 +88,8 @@ public class TrocaServiceTests
             _trocaRepositoryMock.Object,
             _habilidadeRepositoryMock.Object,
             _trilhaRepositoryMock.Object,
-            _usuarioRepositoryMock.Object);
+            _usuarioRepositoryMock.Object,
+            _conquistaRepositoryMock.Object);
     }
 
     private void ConfigurarUsuario(Guid id)

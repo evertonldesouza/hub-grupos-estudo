@@ -42,9 +42,17 @@ public class Usuario
         Nivel = (Xp / 100) + 1;
     }
 
-    public void AtualizarBio(string bio)
+    public void AtualizarNome(string nome)
     {
-        Bio = bio;
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new InvalidOperationException("Nome é obrigatório");
+
+        Nome = nome.Trim();
+    }
+
+    public void AtualizarBio(string? bio)
+    {
+        Bio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
     }
 
     public void TornarAdministrador()
