@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hub de Grupos de Estudo — aprenda, compartilhe e evolua em comunidade.">
+  <title>Hub de Grupos de Estudo</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+
+  <main id="auth-screen" class="auth-screen">
+    <section class="auth-copy">
+      <div class="brand-mark">H</div>
+      <p class="eyebrow">APRENDIZADO EM COMUNIDADE</p>
+      <h1>Seu próximo passo começa com um <span>grupo.</span></h1>
+      <p class="lead">Crie trilhas, acompanhe seu ritmo e troque conhecimento com pessoas que estão aprendendo junto com você.</p>
+      <div class="feature-row">
+        <span>✦ Trilhas práticas</span>
+        <span>✦ Progresso visível</span>
+        <span>✦ Trocas reais</span>
+      </div>
+    </section>
+
+    <section class="auth-card card">
+      <div class="auth-tabs">
+        <button class="tab active" data-auth-mode="login">Entrar</button>
+        <button class="tab" data-auth-mode="register">Criar conta</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-heading">
+          <p class="eyebrow">BEM-VINDO DE VOLTA</p>
+          <h2>Continue sua jornada.</h2>
+        </div>
+        <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="voce@email.com" required></label>
+        <label>Senha<input name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required minlength="6"></label>
+        <button class="button primary wide" type="submit">Entrar no hub <span>→</span></button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden">
+        <div class="form-heading">
+          <p class="eyebrow">COMECE AGORA</p>
+          <h2>Crie seu espaço.</h2>
+        </div>
+        <label>Nome<input name="nome" type="text" autocomplete="name" placeholder="Como podemos te chamar?" required minlength="2" maxlength="100"></label>
+        <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="voce@email.com" required></label>
+        <label>Senha<input name="senha" type="password" autocomplete="new-password" placeholder="mínimo de 6 caracteres" required minlength="6"></label>
+        <button class="button primary wide" type="submit">Criar minha conta <span>→</span></button>
+      </form>
+      <p class="form-note">Seu e-mail não aparece no perfil público.</p>
+    </section>
+  </main>
+
+  <main id="app-screen" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard" data-section="dashboard"><span class="brand-mark small">H</span><span>hub<span class="brand-dot">.</span></span></a>
+      <p class="sidebar-label">ESPAÇO DE ESTUDO</p>
+      <nav class="main-nav">
+        <button class="nav-item active" data-section="dashboard"><span>◈</span> Visão geral</button>
+        <button class="nav-item" data-section="tracks"><span>▣</span> Trilhas</button>
+        <button class="nav-item" data-section="community"><span>◎</span> Comunidade</button>
+        <button class="nav-item" data-section="profile"><span>◇</span> Meu perfil</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="mini-progress"><div class="mini-progress-top"><span>Seu nível</span><strong id="sidebar-level">Nível 1</strong></div><div class="progress-track"><i id="sidebar-xp-bar"></i></div><small id="sidebar-xp">0 XP</small></div>
+        <button id="logout-button" class="logout-button">↪ Sair</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark small">H</span> hub<span class="brand-dot">.</span></div>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-user"><div class="avatar" id="header-avatar">?</div><div><strong id="header-name">Estudante</strong><small id="header-level">Nível 1</small></div></div>
+      </header>
+
+      <div class="page-wrap">
+        <section id="section-dashboard" class="page-section active-section">
+          <div class="welcome-row"><div><p class="eyebrow">VISÃO GERAL</p><h1>Olá, <span id="welcome-name">estudante</span> <span class="wave">✦</span></h1><p class="muted">Um pequeno passo hoje mantém sua jornada em movimento.</p></div><button class="button primary" data-section="tracks">Explorar trilhas <span>→</span></button></div>
+          <div class="stat-grid"><article class="stat-card accent"><span class="stat-icon">◒</span><div><small>Em andamento</small><strong id="stat-active">0</strong><span>trilhas</span></div></article><article class="stat-card"><span class="stat-icon">✓</span><div><small>Concluídas</small><strong id="stat-completed">0</strong><span>trilhas</span></div></article><article class="stat-card"><span class="stat-icon">✦</span><div><small>Conquistas</small><strong id="stat-achievements">0</strong><span>desbloqueadas</span></div></article><article class="stat-card"><span class="stat-icon">↗</span><div><small>Seu XP</small><strong id="stat-xp">0</strong><span>pontos</span></div></article></div>
+          <div class="dashboard-grid"><div class="panel"><div class="panel-heading"><div><p class="eyebrow">SEU RITMO</p><h2>Trilhas em andamento</h2></div><button class="text-button" data-section="tracks">Ver todas →</button></div><div id="dashboard-enrollments" class="card-list"></div></div><div class="panel highlight-panel"><div class="panel-heading"><div><p class="eyebrow">MARCAS DA JORNADA</p><h2>Últimas conquistas</h2></div><button class="text-button" data-section="profile">Ver perfil →</button></div><div id="dashboard-achievements" class="achievement-list"></div></div></div>
+        </section>
+
+        <section id="section-tracks" class="page-section">
+          <div class="section-heading"><div><p class="eyebrow">APRENDA NO SEU RITMO</p><h1>Trilhas de estudo</h1><p class="muted">Escolha um caminho ou crie um para compartilhar com a comunidade.</p></div><button id="toggle-create-track" class="button secondary">＋ Criar trilha</button></div>
+          <div id="create-track-panel" class="panel create-panel hidden"><div class="panel-heading"><div><p class="eyebrow">COMPARTILHE CONHECIMENTO</p><h2>Nova trilha</h2></div><button class="icon-button" id="close-create-track" aria-label="Fechar">×</button></div><form id="create-track-form" class="inline-form"><div class="form-grid"><label>Título<input name="titulo" required maxlength="200" placeholder="Ex.: C# do zero"></label><label>Habilidade<select name="habilidadeId" id="track-skill-select" required></select></label><label>Nível<select name="nivelDificuldade"><option>Iniciante</option><option>Intermediario</option><option>Avancado</option></select></label><label>Primeira etapa<input name="etapaTitulo" required maxlength="200" placeholder="Ex.: Fundamentos"></label></div><label>Descrição<textarea name="descricao" required maxlength="2000" rows="2" placeholder="O que a pessoa vai aprender?"></textarea></label><div class="form-grid stage-grid"><label>Descrição da etapa<input name="etapaDescricao" required maxlength="2000" placeholder="Explique o conteúdo desta etapa"></label><label>Duração (minutos)<input name="duracao" type="number" min="1" max="600" value="30" required></label></div><button class="button primary" type="submit">Publicar trilha <span>→</span></button></form></div>
+          <div class="filter-row"><input id="track-search" class="search-input" type="search" placeholder="⌕  Buscar por título..."><div id="track-filters" class="pills"><button class="pill active" data-level="all">Todas</button><button class="pill" data-level="Iniciante">Iniciante</button><button class="pill" data-level="Intermediario">Intermediário</button><button class="pill" data-level="Avancado">Avançado</button></div></div><div id="tracks-list" class="track-grid"></div>
+        </section>
+
+        <section id="section-community" class="page-section"><div class="section-heading"><div><p class="eyebrow">APRENDER JUNTOS</p><h1>Comunidade</h1><p class="muted">Encontre pessoas, veja o que elas ensinam e construa trocas.</p></div></div><div class="community-grid"><div class="panel"><div class="panel-heading"><h2>Pessoas no hub</h2><input id="user-search" class="compact-search" type="search" placeholder="Buscar nome"></div><div id="users-list" class="user-list"></div></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">CONHECIMENTO EM MOVIMENTO</p><h2>Minhas trocas</h2></div></div><div id="trades-list" class="trade-list"></div></div></div><div class="panel trade-create-panel"><div class="panel-heading"><div><p class="eyebrow">PROPONHA UMA TROCA</p><h2>Compartilhe o que você sabe</h2></div></div><form id="trade-form" class="form-grid"><label>Pessoa<select id="trade-user-select" name="usuarioBId" required></select></label><label>Minha trilha<select id="trade-my-track" name="trilhaAId" required></select></label><label>Habilidade que ofereço<select id="trade-my-skill" name="habilidadeAId" required></select></label><label>Trilha da pessoa<select id="trade-their-track" name="trilhaBId" required></select></label><label>Habilidade que quero receber<select id="trade-their-skill" name="habilidadeBId" required></select></label><div class="trade-submit"><button class="button primary" type="submit">Enviar proposta <span>→</span></button></div></form></div></section>
+
+        <section id="section-profile" class="page-section"><div class="section-heading"><div><p class="eyebrow">SEU ESPAÇO</p><h1>Meu perfil</h1><p class="muted">Mostre à comunidade o que você sabe e acompanhe suas conquistas.</p></div></div><div class="profile-grid"><div class="panel profile-card"><div class="profile-hero"><div class="avatar large" id="profile-avatar">?</div><div><h2 id="profile-name">Estudante</h2><p id="profile-meta" class="muted">Nível 1 · 0 XP</p></div></div><form id="profile-form" class="stack-form"><label>Nome<input name="nome" id="profile-name-input" required maxlength="100"></label><label>Bio<textarea name="bio" id="profile-bio-input" maxlength="500" rows="3" placeholder="Conte um pouco sobre o que você está aprendendo..."></textarea></label><button class="button primary" type="submit">Salvar perfil</button></form></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">O QUE VOCÊ ENSINA</p><h2>Minhas habilidades</h2></div></div><div id="skills-list" class="skills-list"></div><button id="save-skills" class="button secondary">Atualizar habilidades</button></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">MARCAS DA JORNADA</p><h2>Conquistas</h2></div></div><div id="profile-achievements" class="achievement-list full"></div></div></div></section>
+      </div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

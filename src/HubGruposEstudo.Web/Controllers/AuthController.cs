@@ -2,12 +2,14 @@ using HubGruposEstudo.Application.DTOs;
 using HubGruposEstudo.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HubGruposEstudo.Web.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 [AllowAnonymous]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;

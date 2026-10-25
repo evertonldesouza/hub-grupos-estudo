@@ -78,15 +78,34 @@ public class TrocasController : ControllerBase
         }
     }
 
+    [HttpPost("{id:guid}/recusar")]
+    public async Task<IActionResult> Recusar(Guid id)
+    {
+        return await AlterarStatusAsync(id, _service.RecusarAsync);
+    }
+
+    [HttpPost("{id:guid}/cancelar")]
+    public async Task<IActionResult> Cancelar(Guid id)
+    {
+        return await AlterarStatusAsync(id, _service.CancelarAsync);
+    }
+
     [HttpPost("{id:guid}/concluir")]
     public async Task<IActionResult> Concluir(Guid id)
+    {
+        return await AlterarStatusAsync(id, _service.ConcluirAsync);
+    }
+
+    private async Task<IActionResult> AlterarStatusAsync(
+        Guid trocaId,
+        Func<Guid, Guid, Task<Troca>> operacao)
     {
         if (!TryGetUsuarioId(out var usuarioId))
             return Unauthorized(new { mensagem = "Usuário não identificado" });
 
         try
         {
-            var troca = await _service.ConcluirAsync(id, usuarioId);
+            var troca = await operacao(trocaId, usuarioId);
             return Ok(Mapear(troca));
         }
         catch (InvalidOperationException ex)

@@ -55,6 +55,22 @@ public class Troca
         Status = StatusTroca.Ativa;
     }
 
+    public void Recusar()
+    {
+        if (Status != StatusTroca.Pendente)
+            throw new InvalidOperationException("Apenas trocas pendentes podem ser recusadas");
+
+        Status = StatusTroca.Recusada;
+    }
+
+    public void Cancelar()
+    {
+        if (Status is not (StatusTroca.Pendente or StatusTroca.Ativa))
+            throw new InvalidOperationException("Apenas trocas pendentes ou ativas podem ser canceladas");
+
+        Status = StatusTroca.Cancelada;
+    }
+
     public void Concluir()
     {
         if (Status != StatusTroca.Ativa)
