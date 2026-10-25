@@ -9,16 +9,20 @@ public class TrocaService
     private readonly IHabilidadeRepository _habilidadeRepository;
     private readonly ITrilhaRepository _trilhaRepository;
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IConquistaRepository _conquistaRepository;
 
-    public TrocaService(ITrocaRepository trocaRepository,
-                        IHabilidadeRepository habilidadeRepository,
-                        ITrilhaRepository trilhaRepository,
-                        IUsuarioRepository usuarioRepository)
+    public TrocaService(
+        ITrocaRepository trocaRepository,
+        IHabilidadeRepository habilidadeRepository,
+        ITrilhaRepository trilhaRepository,
+        IUsuarioRepository usuarioRepository,
+        IConquistaRepository conquistaRepository)
     {
         _trocaRepository = trocaRepository;
         _habilidadeRepository = habilidadeRepository;
         _trilhaRepository = trilhaRepository;
         _usuarioRepository = usuarioRepository;
+        _conquistaRepository = conquistaRepository;
     }
 
     public async Task<List<Troca>> ListarPorUsuarioAsync(Guid usuarioId)
@@ -98,12 +102,58 @@ public class TrocaService
         return troca;
     }
 
+    public async Task<Troca> RecusarAsync(Guid trocaId, Guid usuarioId)
+    {
+        var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
+
+        if (troca.UsuarioBId != usuarioId)
+            throw new UnauthorizedAccessException("Apenas o usuário B pode recusar a troca");
+
+        troca.Recusar();
+        await _trocaRepository.AtualizarAsync(troca);
+        return troca;
+    }
+
+    public async Task<Troca> CancelarAsync(Guid trocaId, Guid usuarioId)
+    {
+        var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
+        troca.Cancelar();
+        await _trocaRepository.AtualizarAsync(troca);
+        return troca;
+    }
+
     public async Task<Troca> ConcluirAsync(Guid trocaId, Guid usuarioId)
     {
         var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
         troca.Concluir();
         await _trocaRepository.AtualizarAsync(troca);
+
+        await ConcederRecompensaAsync(troca.UsuarioAId);
+        await ConcederRecompensaAsync(troca.UsuarioBId);
         return troca;
+    }
+
+    private async Task ConcederRecompensaAsync(Guid usuarioId)
+    {
+        var usuario = await _usuarioRepository.BuscarPorIdAsync(usuarioId);
+        if (usuario is not null)
+        {
+            usuario.AdicionarXp(50);
+            await _usuarioRepository.AtualizarAsync(usuario);
+        }
+
+        var conquista = await _conquistaRepository
+            .BuscarPorCriterioAsync("PRIMEIRA_TROCA_CONCLUIDA");
+        if (conquista is null)
+            return;
+
+        var jaConquistou = await _conquistaRepository
+            .BuscarDoUsuarioAsync(usuarioId, conquista.Id);
+        if (jaConquistou is null)
+        {
+            await _conquistaRepository.AdicionarConquistaUsuarioAsync(
+                new ConquistaUsuario(usuarioId, conquista.Id));
+        }
     }
 
     private async Task<Troca> ObterTrocaDoUsuarioAsync(Guid trocaId, Guid usuarioId)

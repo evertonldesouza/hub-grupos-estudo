@@ -9,6 +9,20 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hub_user
+          POSTGRES_PASSWORD: hub_pass
+          POSTGRES_DB: hub_grupos_estudo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hub_user -d hub_grupos_estudo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
@@ -26,4 +40,4 @@ jobs:
         run: dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-build --verbosity normal
+        run: dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-restore --verbosity normal

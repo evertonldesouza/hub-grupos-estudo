@@ -16,7 +16,10 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<List<Usuario>> ListarAsync(string? busca = null)
     {
-        var query = _context.Usuarios.AsNoTracking();
+        IQueryable<Usuario> query = _context.Usuarios
+            .AsNoTracking()
+            .Include(u => u.Habilidades)
+            .ThenInclude(uh => uh.Habilidade);
 
         if (!string.IsNullOrWhiteSpace(busca))
         {
@@ -40,6 +43,12 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task AdicionarAsync(Usuario usuario)
     {
         await _context.Usuarios.AddAsync(usuario);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task AtualizarAsync(Usuario usuario)
+    {
+        _context.Usuarios.Update(usuario);
         await _context.SaveChangesAsync();
     }
 

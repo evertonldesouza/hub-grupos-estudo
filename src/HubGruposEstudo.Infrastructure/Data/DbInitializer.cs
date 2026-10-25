@@ -21,6 +21,14 @@ public static class DbInitializer
         ("Git e GitHub", "Ferramentas")
     ];
 
+    private static readonly (string Nome, string Descricao, string Icone, string Criterio)[] ConquistasIniciais =
+    [
+        ("Primeiro passo", "Faça sua primeira inscrição em uma trilha.", "flag", "PRIMEIRA_INSCRICAO"),
+        ("Em movimento", "Avance pela primeira vez em uma trilha.", "rocket", "PRIMEIRO_AVANCO"),
+        ("Trilha concluída", "Conclua sua primeira trilha de estudos.", "check", "PRIMEIRA_TRILHA_CONCLUIDA"),
+        ("Conhecimento compartilhado", "Conclua sua primeira troca de conhecimento.", "people", "PRIMEIRA_TROCA_CONCLUIDA")
+    ];
+
     public static async Task InitializeAsync(
         IServiceProvider services,
         IConfiguration configuration,
@@ -83,6 +91,18 @@ public static class DbInitializer
 
             if (!existe)
                 await context.Habilidades.AddAsync(new Habilidade(nome, categoria), cancellationToken);
+        }
+
+        foreach (var (nome, descricao, icone, criterio) in ConquistasIniciais)
+        {
+            var existe = await context.Conquistas
+                .AnyAsync(c => c.Criterio == criterio, cancellationToken);
+
+            if (!existe)
+            {
+                await context.Conquistas.AddAsync(
+                    new Conquista(nome, descricao, icone, criterio), cancellationToken);
+            }
         }
 
         await SeedAdminAsync(context, configuration, logger, cancellationToken);

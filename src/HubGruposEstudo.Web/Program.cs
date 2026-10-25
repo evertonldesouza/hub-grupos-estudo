@@ -1,11 +1,14 @@
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using HubGruposEstudo.Infrastructure.Data;
 using HubGruposEstudo.Application.Services;
 using HubGruposEstudo.Domain.Interfaces;
 using HubGruposEstudo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -63,6 +66,7 @@ builder.Services.AddScoped<ITrilhaRepository, TrilhaRepository>();
 builder.Services.AddScoped<IInscricaoRepository, InscricaoRepository>();
 builder.Services.AddScoped<ITrocaRepository, TrocaRepository>();
 builder.Services.AddScoped<IConquistaRepository, ConquistaRepository>();
+builder.Services.AddScoped<IUsuarioHabilidadeRepository, UsuarioHabilidadeRepository>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UsuarioService>();
@@ -70,6 +74,7 @@ builder.Services.AddScoped<HabilidadeService>();
 builder.Services.AddScoped<TrilhaService>();
 builder.Services.AddScoped<InscricaoService>();
 builder.Services.AddScoped<TrocaService>();
+builder.Services.AddScoped<ConquistaService>();
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -95,10 +100,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.AutoReplenishment = true;
+    });
+});
 
 var app = builder.Build();
 
-await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    await DbInitializer.InitializeAsync(app.Services, app.Configuration, app.Logger);
+}
+else
+{
+    using var testScope = app.Services.CreateScope();
+    var testContext = testScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await testContext.Database.MigrateAsync();
+}
 
 var useHttpsRedirection = false;
 if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHttps))
@@ -106,6 +131,9 @@ if (bool.TryParse(app.Configuration["UseHttpsRedirection"], out var configuredHt
 
 if (useHttpsRedirection)
     app.UseHttpsRedirection();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
@@ -116,6 +144,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -134,6 +163,8 @@ app.MapGet("/health", async (AppDbContext db) =>
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 }).AllowAnonymous();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
