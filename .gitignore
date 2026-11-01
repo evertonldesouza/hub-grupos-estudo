@@ -481,5 +481,5 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Documentacao privada
-docs/
+# Documentação privada (não versionar)
+docs/private/

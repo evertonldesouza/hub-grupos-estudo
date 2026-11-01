@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -40,4 +48,20 @@ jobs:
         run: dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-restore --verbosity normal
+        run: >-
+          dotnet test tests/HubGruposEstudo.UnitTests
+          --configuration Release
+          --no-restore
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.run_number }}
+          path: "**/TestResults/**/coverage.cobertura.xml"
+          if-no-files-found: ignore
+          retention-days: 7
