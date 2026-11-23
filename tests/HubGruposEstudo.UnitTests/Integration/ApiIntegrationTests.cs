@@ -24,6 +24,22 @@ public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Health_DeveExporLivenessReadinessECorrelationId()
+    {
+        using var client = CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health/live");
+        request.Headers.Add("X-Correlation-ID", "integration-health-check");
+
+        var liveness = await client.SendAsync(request);
+        var readiness = await client.GetAsync("/health/ready");
+
+        Assert.Equal(HttpStatusCode.OK, liveness.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, readiness.StatusCode);
+        Assert.True(liveness.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.Equal("integration-health-check", values!.Single());
+    }
+
+    [Fact]
     public async Task Notificacoes_DeveExigirAutenticacao()
     {
         using var client = CreateClient();

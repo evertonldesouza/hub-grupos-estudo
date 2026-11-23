@@ -18,8 +18,12 @@ RUN dotnet publish src/HubGruposEstudo.Web/HubGruposEstudo.Web.csproj \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_HTTP_PORTS=8080 \
+    DOTNET_EnableDiagnostics=0
 EXPOSE 8080
 
 COPY --from=build /app/publish .
+
+# A imagem oficial do .NET 10 fornece o usuário não privilegiado "app".
+USER app
 ENTRYPOINT ["dotnet", "HubGruposEstudo.Web.dll"]

@@ -22,10 +22,11 @@ O job usa `contents: read`, cancela execuções antigas da mesma referência qua
 3. inicialização do serviço PostgreSQL 16 com health check;
 4. restore da solução;
 5. build em `Release` sem novo restore;
-6. testes unitários e de integração contra o PostgreSQL;
-7. coleta e upload temporário da cobertura.
+6. build da imagem de container para validar o Dockerfile e o runtime não privilegiado;
+7. testes unitários e de integração contra o PostgreSQL;
+8. coleta e upload temporário da cobertura e dos resultados TRX.
 
-O CI deve permanecer determinístico: dependências, banco e variáveis usadas pelos testes precisam estar declarados no workflow ou na documentação. Secrets de produção nunca devem ser necessários para validar um pull request.
+O CI deve permanecer determinístico: dependências, banco e variáveis usadas pelos testes precisam estar declarados no workflow ou na documentação. Secrets de produção nunca devem ser necessários para validar um pull request. O build da imagem deve continuar sendo uma validação, não um push automático para um registry.
 
 ## Diagnóstico de falhas
 

@@ -6,10 +6,14 @@ using HubGruposEstudo.Application.Interfaces;
 using HubGruposEstudo.Application.Services;
 using HubGruposEstudo.Domain.Interfaces;
 using HubGruposEstudo.Infrastructure.Repositories;
+using HubGruposEstudo.Web.Health;
+using HubGruposEstudo.Web.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -60,6 +64,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+builder.Services.AddHealthChecks()
+    .AddCheck<PostgresHealthCheck>("postgresql", tags: new[] { "ready" });
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IHabilidadeRepository, HabilidadeRepository>();
@@ -106,13 +112,16 @@ builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("auth", limiterOptions =>
-    {
-        limiterOptions.PermitLimit = 10;
-        limiterOptions.Window = TimeSpan.FromMinutes(1);
-        limiterOptions.QueueLimit = 0;
-        limiterOptions.AutoReplenishment = true;
-    });
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            GetRateLimitPartition(httpContext),
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
 });
 
 var app = builder.Build();
@@ -138,6 +147,8 @@ if (useHttpsRedirection)
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 
@@ -152,23 +163,41 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/health", async (AppDbContext db) =>
+var healthResponseWriter = async (HttpContext context, HealthReport report) =>
 {
-    try
+    context.Response.ContentType = "application/json";
+    await context.Response.WriteAsJsonAsync(new
     {
-        var conectado = await db.Database.CanConnectAsync();
-        return conectado
-            ? (IResult)Results.Ok(new { status = "ok" })
-            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-    }
-    catch
-    {
-        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-    }
+        status = report.Status == HealthStatus.Healthy ? "ok" : "unhealthy"
+    });
+};
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false,
+    ResponseWriter = healthResponseWriter
+}).AllowAnonymous();
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = healthResponseWriter
+}).AllowAnonymous();
+
+// Mantém /health como alias compatível para consumidores existentes.
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = healthResponseWriter
 }).AllowAnonymous();
 
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static string GetRateLimitPartition(HttpContext context)
+{
+    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown-client";
+}
 
 public partial class Program { }

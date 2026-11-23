@@ -14,6 +14,8 @@ const state = {
   query: ''
 };
 
+let notificationPollingTimer = null;
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
@@ -129,6 +131,7 @@ async function loadApp() {
       unreadNotifications: notificationsPage?.totalNaoLidas || 0
     });
     renderAll();
+    startNotificationPolling();
   } catch (error) {
     showToast(error.message, true);
   }
@@ -346,6 +349,28 @@ async function refreshNotifications() {
   renderNotifications();
 }
 
+function startNotificationPolling() {
+  stopNotificationPolling();
+  notificationPollingTimer = setInterval(async () => {
+    if (!state.token) return;
+
+    try {
+      const result = await api('/api/notificacoes/nao-lidas/quantidade');
+      state.unreadNotifications = result?.total || 0;
+      renderNotifications();
+    } catch {
+      // A próxima janela de atualização tentará novamente; api() trata 401.
+    }
+  }, 30000);
+}
+
+function stopNotificationPolling() {
+  if (notificationPollingTimer) {
+    clearInterval(notificationPollingTimer);
+    notificationPollingTimer = null;
+  }
+}
+
 async function handleNotificationAction(button) {
   try {
     if (button.dataset.notificationAction === 'read') {
@@ -424,6 +449,7 @@ async function handleRegister(event) {
 }
 
 function logout(notify = true) {
+  stopNotificationPolling();
   state.token = null;
   localStorage.removeItem('hub_token');
   showAuth();

@@ -47,15 +47,30 @@ jobs:
       - name: Build
         run: dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 
+      - name: Build container
+        run: |
+          docker build --tag hub-grupos-estudo:ci .
+          test "$(docker image inspect hub-grupos-estudo:ci --format '{{.Config.User}}')" = "app"
+
       - name: Test
         run: >-
           dotnet test tests/HubGruposEstudo.UnitTests
           --configuration Release
           --no-restore
           --verbosity normal
+          --logger "trx;LogFileName=test-results.trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
           -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: "**/TestResults/**/*.trx"
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload coverage
         if: always()

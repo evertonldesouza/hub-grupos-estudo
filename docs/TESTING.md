@@ -19,7 +19,7 @@ Localizados em `tests/HubGruposEstudo.UnitTests/Services`:
 
 Localizados em `tests/HubGruposEstudo.UnitTests/Integration`:
 
-- `ApiIntegrationTests` sobe a API com `WebApplicationFactory` e valida health, cadastro, login, perfil autenticado e proteção do endpoint de notificações;
+- `ApiIntegrationTests` sobe a API com `WebApplicationFactory` e valida health, liveness/readiness, correlation ID, cadastro, login, perfil autenticado e proteção do endpoint de notificações;
 - `PostgresIntegrationTests` aplica migrations e verifica conexão e acesso às tabelas;
 - o ambiente `Testing` usa PostgreSQL, não um banco falso, para detectar incompatibilidades de provider e schema;
 - os testes são serializados porque compartilham o mesmo banco descartável.
@@ -73,6 +73,7 @@ docker compose down
 - Não use sleeps arbitrários para esconder race conditions; aguarde uma condição observável.
 - Gere emails e identificadores únicos nos testes de integração.
 - Não grave tokens, senhas ou connection strings em mensagens de falha.
+- Ao alterar health checks, middleware ou rate limiting, cubra o contrato HTTP e os casos de rejeição sem expor detalhes internos.
 - Ao alterar uma migration, mantenha um teste de aplicação de migrations no PostgreSQL.
 
 ## Cobertura
