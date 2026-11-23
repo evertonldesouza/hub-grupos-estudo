@@ -18,6 +18,7 @@ public class Usuario
     public ICollection<Inscricao> Inscricoes { get; private set; } = new List<Inscricao>();
     public ICollection<ConquistaUsuario> Conquistas { get; private set; } = new List<ConquistaUsuario>();
     public ICollection<UsuarioHabilidade> Habilidades { get; private set; } = new List<UsuarioHabilidade>();
+    public ICollection<Notificacao> Notificacoes { get; private set; } = new List<Notificacao>();
 
     protected Usuario() { }
 

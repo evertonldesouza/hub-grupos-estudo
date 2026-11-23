@@ -1,4 +1,6 @@
+using HubGruposEstudo.Application.Interfaces;
 using HubGruposEstudo.Domain.Entities;
+using HubGruposEstudo.Domain.Enums;
 using HubGruposEstudo.Domain.Interfaces;
 using Moq;
 
@@ -10,6 +12,7 @@ public class InscricaoServiceTests
     private readonly Mock<ITrilhaRepository> _trilhaRepositoryMock;
     private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock;
     private readonly Mock<IConquistaRepository> _conquistaRepositoryMock;
+    private readonly Mock<INotificacaoService> _notificacaoServiceMock;
     private readonly Application.Services.InscricaoService _service;
 
     public InscricaoServiceTests()
@@ -18,14 +21,29 @@ public class InscricaoServiceTests
         _trilhaRepositoryMock = new Mock<ITrilhaRepository>();
         _usuarioRepositoryMock = new Mock<IUsuarioRepository>();
         _conquistaRepositoryMock = new Mock<IConquistaRepository>();
+        _notificacaoServiceMock = new Mock<INotificacaoService>();
         _usuarioRepositoryMock
             .Setup(r => r.AtualizarAsync(It.IsAny<Usuario>()))
             .Returns(Task.CompletedTask);
+        _notificacaoServiceMock
+            .Setup(s => s.CriarAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Domain.Enums.TipoNotificacao>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<string?>()))
+            .ReturnsAsync(new Notificacao(
+                Guid.NewGuid(),
+                TipoNotificacao.NovaTroca,
+                "Teste",
+                "Notificação de teste"));
         _service = new Application.Services.InscricaoService(
             _inscricaoRepositoryMock.Object,
             _trilhaRepositoryMock.Object,
             _usuarioRepositoryMock.Object,
-            _conquistaRepositoryMock.Object);
+            _conquistaRepositoryMock.Object,
+            _notificacaoServiceMock.Object);
     }
 
     [Fact]
@@ -48,6 +66,13 @@ public class InscricaoServiceTests
         Assert.Equal(trilhaId, inscricao.TrilhaId);
         Assert.False(inscricao.Concluida);
         _inscricaoRepositoryMock.Verify(r => r.AdicionarAsync(It.IsAny<Inscricao>()), Times.Once);
+        _notificacaoServiceMock.Verify(s => s.CriarAsync(
+            usuarioId,
+            TipoNotificacao.InscricaoCriada,
+            "Inscrição realizada",
+            It.Is<string>(mensagem => mensagem.Contains(trilha.Titulo)),
+            trilhaId,
+            "trilha"), Times.Once);
     }
 
     [Fact]
@@ -97,6 +122,13 @@ public class InscricaoServiceTests
 
         Assert.Equal(2, inscricao.EtapaAtual);
         _inscricaoRepositoryMock.Verify(r => r.AtualizarAsync(It.IsAny<Inscricao>()), Times.Once);
+        _notificacaoServiceMock.Verify(s => s.CriarAsync(
+            usuarioId,
+            TipoNotificacao.ProgressoAtualizado,
+            "Progresso atualizado",
+            It.Is<string>(mensagem => mensagem.Contains("etapa 2")),
+            trilha.Id,
+            "trilha"), Times.Once);
     }
 
     [Fact]
@@ -116,6 +148,13 @@ public class InscricaoServiceTests
 
         Assert.True(inscricao.Concluida);
         _inscricaoRepositoryMock.Verify(r => r.AtualizarAsync(It.IsAny<Inscricao>()), Times.Once);
+        _notificacaoServiceMock.Verify(s => s.CriarAsync(
+            usuarioId,
+            TipoNotificacao.TrilhaConcluida,
+            "Trilha concluída",
+            It.Is<string>(mensagem => mensagem.Contains("concluiu a trilha")),
+            trilha.Id,
+            "trilha"), Times.Once);
     }
 
     private static Trilha CriarTrilhaComEtapas()

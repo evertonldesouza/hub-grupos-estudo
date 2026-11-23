@@ -26,6 +26,8 @@ API e interface web para uma comunidade de aprendizagem em que pessoas criam tri
 - inscrição, avanço de etapa e conclusão com percentual de progresso;
 - XP, níveis e conquistas concedidos por eventos de estudo;
 - criação, aceite, recusa, cancelamento e conclusão de trocas entre usuários;
+- notificações persistidas para trocas, inscrições, progresso e conquistas;
+- consulta, paginação e marcação de notificações como lidas pela API e interface;
 - interface web responsiva servida em `/`;
 - migrations do Entity Framework Core e dados iniciais no primeiro start;
 - endpoint `GET /health` para verificar a conexão com o PostgreSQL;
@@ -46,6 +48,7 @@ API e interface web para uma comunidade de aprendizagem em que pessoas criam tri
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Definition of done, fluxo de desenvolvimento e regra de atualização da documentação |
 | [SECURITY.md](SECURITY.md) | Controles de segurança atuais, checklist de produção e reporte de vulnerabilidades |
 | [docs/TESTING.md](docs/TESTING.md) | Pirâmide de testes, execução local e como adicionar cenários |
+| [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Eventos, contrato da API e comportamento da central de notificações |
 | [docs/CI-CD.md](docs/CI-CD.md) | Pipeline, gates de qualidade, releases e evolução para CD |
 | [CHANGELOG.md](CHANGELOG.md) | Histórico versionado das melhorias e mudanças relevantes |
 
@@ -140,6 +143,7 @@ O Swagger é habilitado no ambiente de desenvolvimento. Para exercitar a API:
 5. Crie uma trilha em `POST /api/trilhas` com ao menos uma etapa.
 6. Inscreva-se em `POST /api/inscricoes`, avance em `POST /api/inscricoes/{id}/avancar` e conclua em `POST /api/inscricoes/{id}/concluir`.
 7. Use `/api/trocas` para propor, aceitar, recusar, cancelar ou concluir uma troca.
+8. Consulte `GET /api/notificacoes` e use os endpoints de leitura para acompanhar os eventos da sua conta. O contrato completo está em [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md).
 
 Exemplo de criação de trilha:
 
@@ -172,7 +176,7 @@ dotnet build HubGruposEstudo.slnx --configuration Release --no-restore
 dotnet test tests/HubGruposEstudo.UnitTests --configuration Release --no-restore --verbosity normal
 ```
 
-Os testes de serviço cobrem autenticação, habilidades, trilhas, inscrições, progresso, perfil, XP, conquistas, trocas e regras de acesso. Os testes de integração cobrem health check, migrations, cadastro, login e perfil autenticado.
+Os testes de serviço cobrem autenticação, habilidades, trilhas, inscrições, progresso, notificações, perfil, XP, conquistas, trocas e regras de acesso. Os testes de integração cobrem health check, migrations, cadastro, login, perfil autenticado e a proteção do endpoint de notificações.
 
 Para entender a organização e adicionar cenários corretamente, leia [docs/TESTING.md](docs/TESTING.md).
 

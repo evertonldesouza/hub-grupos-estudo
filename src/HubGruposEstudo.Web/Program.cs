@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 using HubGruposEstudo.Infrastructure.Data;
+using HubGruposEstudo.Application.Interfaces;
 using HubGruposEstudo.Application.Services;
 using HubGruposEstudo.Domain.Interfaces;
 using HubGruposEstudo.Infrastructure.Repositories;
@@ -67,6 +68,7 @@ builder.Services.AddScoped<IInscricaoRepository, InscricaoRepository>();
 builder.Services.AddScoped<ITrocaRepository, TrocaRepository>();
 builder.Services.AddScoped<IConquistaRepository, ConquistaRepository>();
 builder.Services.AddScoped<IUsuarioHabilidadeRepository, UsuarioHabilidadeRepository>();
+builder.Services.AddScoped<INotificacaoRepository, NotificacaoRepository>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UsuarioService>();
@@ -75,6 +77,7 @@ builder.Services.AddScoped<TrilhaService>();
 builder.Services.AddScoped<InscricaoService>();
 builder.Services.AddScoped<TrocaService>();
 builder.Services.AddScoped<ConquistaService>();
+builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];

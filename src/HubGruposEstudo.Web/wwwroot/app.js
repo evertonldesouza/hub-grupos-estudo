@@ -8,6 +8,8 @@ const state = {
   myAchievements: [],
   users: [],
   trades: [],
+  notifications: [],
+  unreadNotifications: 0,
   level: 'all',
   query: ''
 };
@@ -40,6 +42,16 @@ function initials(name = '') {
 function formatDate(value) {
   if (!value) return '';
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value));
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(value));
 }
 
 function levelLabel(level) {
@@ -93,7 +105,7 @@ function showApp() {
 async function loadApp() {
   showApp();
   try {
-    const [user, skills, tracks, enrollments, achievements, myAchievements, users, trades] = await Promise.all([
+    const [user, skills, tracks, enrollments, achievements, myAchievements, users, trades, notificationsPage] = await Promise.all([
       api('/api/usuarios/me'),
       api('/api/habilidades'),
       api('/api/trilhas'),
@@ -101,9 +113,21 @@ async function loadApp() {
       api('/api/conquistas'),
       api('/api/conquistas/minhas'),
       api('/api/usuarios'),
-      api('/api/trocas')
+      api('/api/trocas'),
+      api('/api/notificacoes?tamanhoPagina=50')
     ]);
-    Object.assign(state, { user, skills, tracks, enrollments, achievements, myAchievements, users, trades });
+    Object.assign(state, {
+      user,
+      skills,
+      tracks,
+      enrollments,
+      achievements,
+      myAchievements,
+      users,
+      trades,
+      notifications: notificationsPage?.itens || [],
+      unreadNotifications: notificationsPage?.totalNaoLidas || 0
+    });
     renderAll();
   } catch (error) {
     showToast(error.message, true);
@@ -119,6 +143,7 @@ function renderAll() {
   renderTrades();
   renderTradeForm();
   renderProfile();
+  renderNotifications();
 }
 
 function renderUserChrome() {
@@ -278,6 +303,64 @@ function updateTradeTrackOptions() {
     : '<option value="">Escolha uma trilha da pessoa</option>';
 }
 
+function renderNotifications() {
+  const unread = state.unreadNotifications || 0;
+  const badge = $('#notification-badge');
+  if (badge) {
+    badge.textContent = unread > 99 ? '99+' : unread;
+    badge.classList.toggle('hidden', unread === 0);
+  }
+  const sidebarBadge = $('#sidebar-notification-badge');
+  if (sidebarBadge) {
+    sidebarBadge.textContent = unread > 99 ? '99+' : unread;
+    sidebarBadge.classList.toggle('hidden', unread === 0);
+  }
+
+  const count = $('#notifications-count');
+  if (count) {
+    count.textContent = unread ? `${unread} não lida${unread === 1 ? '' : 's'}` : 'Tudo em dia';
+  }
+
+  const container = $('#notifications-list');
+  if (!container) return;
+  if (!state.notifications.length) {
+    container.innerHTML = '<div class="empty-state">Você está em dia. Novas atualizações aparecerão aqui.</div>';
+    return;
+  }
+
+  container.innerHTML = state.notifications.map(notification => `
+    <article class="notification-card ${notification.lida ? '' : 'unread'}">
+      <div class="notification-icon">${notification.lida ? '✓' : '●'}</div>
+      <div class="notification-copy">
+        <div class="notification-heading"><h3>${escapeHtml(notification.titulo)}</h3><time>${formatDateTime(notification.criadaEm)}</time></div>
+        <p>${escapeHtml(notification.mensagem)}</p>
+        ${notification.lida ? '' : `<button class="text-button notification-read" data-notification-action="read" data-notification-id="${notification.id}">Marcar como lida</button>`}
+      </div>
+    </article>`).join('');
+}
+
+async function refreshNotifications() {
+  const notificationsPage = await api('/api/notificacoes?tamanhoPagina=50');
+  state.notifications = notificationsPage?.itens || [];
+  state.unreadNotifications = notificationsPage?.totalNaoLidas || 0;
+  renderNotifications();
+}
+
+async function handleNotificationAction(button) {
+  try {
+    if (button.dataset.notificationAction === 'read') {
+      await api(`/api/notificacoes/${button.dataset.notificationId}/ler`, { method: 'POST' });
+      showToast('Notificação marcada como lida.');
+    } else if (button.dataset.notificationAction === 'read-all') {
+      await api('/api/notificacoes/ler-todas', { method: 'POST' });
+      showToast('Todas as notificações foram marcadas como lidas.');
+    }
+    await refreshNotifications();
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
 function renderProfile() {
   const user = state.user || {};
   const name = user.nome || 'Estudante';
@@ -295,10 +378,25 @@ function renderProfile() {
 }
 
 async function refreshData() {
-  const [user, tracks, enrollments, myAchievements, users, trades] = await Promise.all([
-    api('/api/usuarios/me'), api('/api/trilhas'), api('/api/inscricoes'), api('/api/conquistas/minhas'), api('/api/usuarios'), api('/api/trocas')
+  const [user, tracks, enrollments, myAchievements, users, trades, notificationsPage] = await Promise.all([
+    api('/api/usuarios/me'),
+    api('/api/trilhas'),
+    api('/api/inscricoes'),
+    api('/api/conquistas/minhas'),
+    api('/api/usuarios'),
+    api('/api/trocas'),
+    api('/api/notificacoes?tamanhoPagina=50')
   ]);
-  Object.assign(state, { user, tracks, enrollments, myAchievements, users, trades });
+  Object.assign(state, {
+    user,
+    tracks,
+    enrollments,
+    myAchievements,
+    users,
+    trades,
+    notifications: notificationsPage?.itens || [],
+    unreadNotifications: notificationsPage?.totalNaoLidas || 0
+  });
   renderAll();
 }
 
@@ -410,6 +508,9 @@ async function handleSkills() {
 function showSection(section) {
   $$('.page-section').forEach(item => item.classList.toggle('active-section', item.id === `section-${section}`));
   $$('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.section === section));
+  if (section === 'notifications' && state.token) {
+    refreshNotifications().catch(error => showToast(error.message, true));
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -437,6 +538,12 @@ function bindEvents() {
     renderTracks();
   });
   document.addEventListener('click', event => {
+    const notificationButton = event.target.closest('[data-notification-action]');
+    if (notificationButton) {
+      event.preventDefault();
+      handleNotificationAction(notificationButton);
+      return;
+    }
     const sectionButton = event.target.closest('[data-section]');
     if (sectionButton) { event.preventDefault(); showSection(sectionButton.dataset.section); }
     const trackButton = event.target.closest('[data-track-action]');

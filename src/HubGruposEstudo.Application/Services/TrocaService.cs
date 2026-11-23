@@ -1,4 +1,6 @@
+using HubGruposEstudo.Application.Interfaces;
 using HubGruposEstudo.Domain.Entities;
+using HubGruposEstudo.Domain.Enums;
 using HubGruposEstudo.Domain.Interfaces;
 
 namespace HubGruposEstudo.Application.Services;
@@ -10,19 +12,22 @@ public class TrocaService
     private readonly ITrilhaRepository _trilhaRepository;
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IConquistaRepository _conquistaRepository;
+    private readonly INotificacaoService _notificacaoService;
 
     public TrocaService(
         ITrocaRepository trocaRepository,
         IHabilidadeRepository habilidadeRepository,
         ITrilhaRepository trilhaRepository,
         IUsuarioRepository usuarioRepository,
-        IConquistaRepository conquistaRepository)
+        IConquistaRepository conquistaRepository,
+        INotificacaoService notificacaoService)
     {
         _trocaRepository = trocaRepository;
         _habilidadeRepository = habilidadeRepository;
         _trilhaRepository = trilhaRepository;
         _usuarioRepository = usuarioRepository;
         _conquistaRepository = conquistaRepository;
+        _notificacaoService = notificacaoService;
     }
 
     public async Task<List<Troca>> ListarPorUsuarioAsync(Guid usuarioId)
@@ -87,6 +92,13 @@ public class TrocaService
             trilhaAId, trilhaBId);
 
         await _trocaRepository.AdicionarAsync(troca);
+        await _notificacaoService.CriarAsync(
+            usuarioBId,
+            TipoNotificacao.NovaTroca,
+            "Nova proposta de troca",
+            "Você recebeu uma nova proposta de troca de conhecimento.",
+            troca.Id,
+            "troca");
         return troca;
     }
 
@@ -99,6 +111,13 @@ public class TrocaService
 
         troca.Ativar();
         await _trocaRepository.AtualizarAsync(troca);
+        await _notificacaoService.CriarAsync(
+            troca.UsuarioAId,
+            TipoNotificacao.TrocaAceita,
+            "Troca aceita",
+            "Sua proposta de troca foi aceita.",
+            troca.Id,
+            "troca");
         return troca;
     }
 
@@ -111,6 +130,13 @@ public class TrocaService
 
         troca.Recusar();
         await _trocaRepository.AtualizarAsync(troca);
+        await _notificacaoService.CriarAsync(
+            troca.UsuarioAId,
+            TipoNotificacao.TrocaRecusada,
+            "Troca recusada",
+            "Sua proposta de troca foi recusada.",
+            troca.Id,
+            "troca");
         return troca;
     }
 
@@ -119,6 +145,17 @@ public class TrocaService
         var troca = await ObterTrocaDoUsuarioAsync(trocaId, usuarioId);
         troca.Cancelar();
         await _trocaRepository.AtualizarAsync(troca);
+
+        var destinatarioId = troca.UsuarioAId == usuarioId
+            ? troca.UsuarioBId
+            : troca.UsuarioAId;
+        await _notificacaoService.CriarAsync(
+            destinatarioId,
+            TipoNotificacao.TrocaCancelada,
+            "Troca cancelada",
+            "Uma troca de conhecimento da qual você participava foi cancelada.",
+            troca.Id,
+            "troca");
         return troca;
     }
 
@@ -130,6 +167,20 @@ public class TrocaService
 
         await ConcederRecompensaAsync(troca.UsuarioAId);
         await ConcederRecompensaAsync(troca.UsuarioBId);
+        await _notificacaoService.CriarAsync(
+            troca.UsuarioAId,
+            TipoNotificacao.TrocaConcluida,
+            "Troca concluída",
+            "A troca de conhecimento foi concluída.",
+            troca.Id,
+            "troca");
+        await _notificacaoService.CriarAsync(
+            troca.UsuarioBId,
+            TipoNotificacao.TrocaConcluida,
+            "Troca concluída",
+            "A troca de conhecimento foi concluída.",
+            troca.Id,
+            "troca");
         return troca;
     }
 
@@ -153,6 +204,13 @@ public class TrocaService
         {
             await _conquistaRepository.AdicionarConquistaUsuarioAsync(
                 new ConquistaUsuario(usuarioId, conquista.Id));
+            await _notificacaoService.CriarAsync(
+                usuarioId,
+                TipoNotificacao.ConquistaDesbloqueada,
+                "Conquista desbloqueada",
+                $"Você desbloqueou a conquista {conquista.Nome}.",
+                conquista.Id,
+                "conquista");
         }
     }
 

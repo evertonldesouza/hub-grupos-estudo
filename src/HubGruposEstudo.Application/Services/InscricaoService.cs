@@ -1,4 +1,6 @@
+using HubGruposEstudo.Application.Interfaces;
 using HubGruposEstudo.Domain.Entities;
+using HubGruposEstudo.Domain.Enums;
 using HubGruposEstudo.Domain.Interfaces;
 
 namespace HubGruposEstudo.Application.Services;
@@ -9,17 +11,20 @@ public class InscricaoService
     private readonly ITrilhaRepository _trilhaRepository;
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IConquistaRepository _conquistaRepository;
+    private readonly INotificacaoService _notificacaoService;
 
     public InscricaoService(
         IInscricaoRepository inscricaoRepository,
         ITrilhaRepository trilhaRepository,
         IUsuarioRepository usuarioRepository,
-        IConquistaRepository conquistaRepository)
+        IConquistaRepository conquistaRepository,
+        INotificacaoService notificacaoService)
     {
         _inscricaoRepository = inscricaoRepository;
         _trilhaRepository = trilhaRepository;
         _usuarioRepository = usuarioRepository;
         _conquistaRepository = conquistaRepository;
+        _notificacaoService = notificacaoService;
     }
 
     public async Task<List<Inscricao>> ListarPorUsuarioAsync(Guid usuarioId)
@@ -58,6 +63,13 @@ public class InscricaoService
         await _inscricaoRepository.AdicionarAsync(inscricao);
 
         await ConcederRecompensasAsync(usuarioId, 10, "PRIMEIRA_INSCRICAO");
+        await _notificacaoService.CriarAsync(
+            usuarioId,
+            TipoNotificacao.InscricaoCriada,
+            "Inscrição realizada",
+            $"Você começou a trilha {trilha.Titulo}.",
+            trilhaId,
+            "trilha");
         return inscricao;
     }
 
@@ -82,6 +94,7 @@ public class InscricaoService
             await ConcederRecompensasAsync(usuarioId, 10, "PRIMEIRO_AVANCO");
         }
 
+        await NotificarProgressoAsync(usuarioId, inscricao);
         return inscricao;
     }
 
@@ -91,6 +104,7 @@ public class InscricaoService
         inscricao.Concluir();
         await _inscricaoRepository.AtualizarAsync(inscricao);
         await ConcederRecompensasAsync(usuarioId, 50, "PRIMEIRA_TRILHA_CONCLUIDA");
+        await NotificarProgressoAsync(usuarioId, inscricao);
         return inscricao;
     }
 
@@ -118,8 +132,33 @@ public class InscricaoService
             {
                 await _conquistaRepository.AdicionarConquistaUsuarioAsync(
                     new ConquistaUsuario(usuarioId, conquista.Id));
+                await _notificacaoService.CriarAsync(
+                    usuarioId,
+                    TipoNotificacao.ConquistaDesbloqueada,
+                    "Conquista desbloqueada",
+                    $"Você desbloqueou a conquista {conquista.Nome}.",
+                    conquista.Id,
+                    "conquista");
             }
         }
+    }
+
+    private async Task NotificarProgressoAsync(Guid usuarioId, Inscricao inscricao)
+    {
+        var nomeTrilha = inscricao.Trilha?.Titulo ?? "sua trilha";
+        var mensagem = inscricao.Concluida
+            ? $"Você concluiu a trilha {nomeTrilha}."
+            : $"Você avançou para a etapa {inscricao.EtapaAtual} de {nomeTrilha}.";
+
+        await _notificacaoService.CriarAsync(
+            usuarioId,
+            inscricao.Concluida
+                ? TipoNotificacao.TrilhaConcluida
+                : TipoNotificacao.ProgressoAtualizado,
+            inscricao.Concluida ? "Trilha concluída" : "Progresso atualizado",
+            mensagem,
+            inscricao.TrilhaId,
+            "trilha");
     }
 
     private async Task<Inscricao> ObterInscricaoDoUsuarioAsync(Guid usuarioId, Guid inscricaoId)
