@@ -25,12 +25,15 @@ Até existir um canal privado específico configurado no GitHub, o reporte deve 
 - Criação de habilidades exige o papel de administrador.
 - O perfil público não expõe email nem hash de senha.
 - Notificações são filtradas pelo `UsuarioId` autenticado; não é permitido ler ou alterar notificações de outra pessoa.
+- O container de runtime executa com o usuário não privilegiado `app`, sem capabilities adicionais e com `no-new-privileges` no Compose.
+- O middleware de requisições valida o `X-Correlation-ID` antes de colocá-lo nos logs, evitando valores com quebra de linha ou tamanho excessivo.
 
 ### Proteção contra abuso
 
-- A política `auth` permite no máximo 10 requisições por minuto por instância, sem fila, para endpoints de autenticação.
+- A política `auth` permite no máximo 10 requisições por minuto por endereço IP e por instância, sem fila, para endpoints de autenticação.
 - O middleware de rate limiting é executado antes dos controllers.
 - A limitação atual é local ao processo. Em múltiplas instâncias, deve ser substituída ou complementada por um mecanismo distribuído antes de considerar o controle suficiente para produção.
+- Os endpoints de liveness/readiness são anônimos por necessidade operacional e retornam somente estado agregado, sem detalhes de exceção ou conexão.
 
 ### Entrada, dados e erros
 
@@ -39,7 +42,7 @@ Até existir um canal privado específico configurado no GitHub, o reporte deve 
 - O acesso ao banco é feito pelo Entity Framework Core/Npgsql, evitando SQL concatenado nos casos de uso atuais.
 - `ProblemDetails` e o exception handler evitam expor detalhes de exceção fora de Development.
 - Swagger só é habilitado em Development.
-- O endpoint `/health` retorna somente o estado de conectividade, sem credenciais ou detalhes do banco.
+- Os endpoints `/health/live`, `/health/ready` e `/health` retornam somente estado agregado, sem credenciais ou detalhes do banco.
 
 ### Secrets e configuração
 
@@ -62,7 +65,9 @@ Até existir um canal privado específico configurado no GitHub, o reporte deve 
 - [ ] Redigir tokens, senhas, connection strings e dados pessoais dos logs.
 - [ ] Executar auditoria de dependências e corrigir vulnerabilidades antes da release.
 - [ ] Executar testes de segurança e de autorização para cada novo endpoint protegido.
-- [ ] Usar imagem de container atualizada e, idealmente, processo sem usuário root.
+- [ ] Usar imagem de container atualizada e validar o processo sem usuário root no ambiente publicado.
+- [ ] Configurar agregação, retenção e alerta para logs estruturados e health checks.
+- [ ] Configurar forwarded headers somente para proxies confiáveis antes de usar o IP encaminhado em políticas de rate limiting.
 
 ## Regra para novas funcionalidades
 

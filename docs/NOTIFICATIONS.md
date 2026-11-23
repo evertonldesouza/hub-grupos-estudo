@@ -31,7 +31,9 @@ O `UsuarioId` não é aceito como parâmetro nesses endpoints. Consultas, marca�
 
 ## Interface web
 
-Depois do login, o sino do cabeçalho e o item **Notificações** da navegação mostram o total de não lidas. A página lista as atualizações mais recentes, permite marcar uma notificação individual e oferece a ação para marcar todas como lidas.
+Depois do login, o sino do cabeçalho e o item **Notificações** da navegação mostram o total de não lidas. A página lista as atualizações mais recentes, permite marcar uma notificação individual e oferece a ação para marcar todas como lidas. Enquanto a sessão estiver ativa, o badge consulta a quantidade de não lidas a cada 30 segundos para refletir eventos novos sem recarregar a página.
+
+A atualização periódica é deliberadamente simples e funciona sem conexão persistente. Entrega por WebSocket/SSE continua no roadmap para reduzir latência e suportar múltiplas instâncias com um broker.
 
 ## Persistência
 

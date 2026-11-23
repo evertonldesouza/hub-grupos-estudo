@@ -30,7 +30,8 @@ API e interface web para uma comunidade de aprendizagem em que pessoas criam tri
 - consulta, paginação e marcação de notificações como lidas pela API e interface;
 - interface web responsiva servida em `/`;
 - migrations do Entity Framework Core e dados iniciais no primeiro start;
-- endpoint `GET /health` para verificar a conexão com o PostgreSQL;
+- endpoints `/health/live` e `/health/ready` para liveness/readiness;
+- correlation ID e logs HTTP estruturados em JSON;
 - Swagger disponível somente no ambiente de desenvolvimento.
 
 ## Arquitetura
@@ -49,6 +50,7 @@ API e interface web para uma comunidade de aprendizagem em que pessoas criam tri
 | [SECURITY.md](SECURITY.md) | Controles de segurança atuais, checklist de produção e reporte de vulnerabilidades |
 | [docs/TESTING.md](docs/TESTING.md) | Pirâmide de testes, execução local e como adicionar cenários |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Eventos, contrato da API e comportamento da central de notificações |
+| [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) | Correlation ID, logs estruturados e health checks |
 | [docs/CI-CD.md](docs/CI-CD.md) | Pipeline, gates de qualidade, releases e evolução para CD |
 | [CHANGELOG.md](CHANGELOG.md) | Histórico versionado das melhorias e mudanças relevantes |
 
@@ -72,7 +74,7 @@ A aplicação ficará disponível em:
 
 - Interface web: <http://localhost:8080>
 - API: <http://localhost:8080/api>
-- Saúde: <http://localhost:8080/health>
+- Saúde: <http://localhost:8080/health/ready> (liveness em `/health/live`)
 - Swagger: disponível apenas quando `ASPNETCORE_ENVIRONMENT=Development`
 
 O Compose aguarda o PostgreSQL ficar saudável, aplica as migrations e cria as habilidades e conquistas iniciais. O administrador definido por `ADMIN_EMAIL` e `ADMIN_PASSWORD` também é criado somente se ainda não existir.
@@ -129,6 +131,8 @@ As configurações podem ser fornecidas por `appsettings*.json` ou por variávei
 | `BootstrapAdmin__Password` | Opcional; mínimo de 6 caracteres, nunca versionar |
 | `Database__ApplyMigrations` | Opcional; padrão `true`, desative quando migrations forem gerenciadas externamente |
 | `UseHttpsRedirection` | Recomendado `true` quando a aplicação receber tráfego diretamente |
+
+Os endpoints `/health/live`, `/health/ready` e `/health` são anônimos para uso por orquestradores. Consulte [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) para o contrato e as limitações.
 
 Consulte o [checklist de segurança](SECURITY.md) antes de configurar um ambiente que não seja local.
 
@@ -188,18 +192,19 @@ O workflow em `.github/workflows/ci.yml` executa em pushes na `main` e em pull r
 2. inicia um PostgreSQL 16 descartável com health check;
 3. restaura dependências;
 4. compila em Release;
-5. executa testes unitários e de integração;
-6. publica a cobertura como artefato temporário do workflow.
+5. valida o build da imagem de container e o usuário não privilegiado;
+6. executa testes unitários e de integração;
+7. publica cobertura e resultados TRX como artefatos temporários do workflow.
 
 A publicação de uma versão deve seguir [docs/CI-CD.md](docs/CI-CD.md) e atualizar [CHANGELOG.md](CHANGELOG.md). O pipeline atual é CI; deploy contínuo deverá ser adicionado somente com ambientes, approvals, secrets e rollback definidos.
 
 ## Roadmap
 
-- notificações em tempo real ou por e-mail;
-- observabilidade com métricas, tracing e alertas;
+- notificações por WebSocket/SSE ou por e-mail;
+- métricas, tracing distribuído e alertas gerenciados;
 - rate limiting distribuído para múltiplas instâncias;
 - execução de migrations como etapa controlada de deploy;
-- container sem usuário root e imagem com processo de atualização definido;
+- assinatura e publicação controlada da imagem de container;
 - ambiente de staging e CD com aprovação manual;
 - testes de contrato e testes de carga para os endpoints críticos.
 

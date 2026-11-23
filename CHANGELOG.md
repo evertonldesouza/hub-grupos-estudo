@@ -11,11 +11,15 @@ Use esta seção durante o desenvolvimento. Mova os itens para uma versão no mo
 - notificações persistidas para propostas e mudanças de estado de trocas;
 - notificações de inscrição, progresso e conquistas;
 - API autenticada para listar, paginar e marcar notificações como lidas;
-- central de notificações na interface web.
+- central de notificações na interface web;
+- health checks de liveness/readiness e logs HTTP estruturados com correlation ID;
+- imagem de runtime e Compose endurecidos para execução sem privilégios;
+- atualização periódica do badge de notificações enquanto a sessão está ativa.
 
 ### Changed
 
 - ações de troca e progresso passam a registrar eventos para o usuário relacionado;
+- rate limiting de autenticação passa a ser particionado por endereço IP e por instância;
 
 ### Fixed
 
