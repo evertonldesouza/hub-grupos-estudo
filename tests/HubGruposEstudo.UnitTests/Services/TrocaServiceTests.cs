@@ -26,7 +26,11 @@ public class TrocaServiceTests
                 It.IsAny<string>(),
                 It.IsAny<Guid?>(),
                 It.IsAny<string?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(new Notificacao(
+                Guid.NewGuid(),
+                TipoNotificacao.NovaTroca,
+                "Teste",
+                "Notificação de teste"));
     }
 
     [Fact]

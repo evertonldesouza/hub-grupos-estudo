@@ -33,7 +33,11 @@ public class InscricaoServiceTests
                 It.IsAny<string>(),
                 It.IsAny<Guid?>(),
                 It.IsAny<string?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(new Notificacao(
+                Guid.NewGuid(),
+                TipoNotificacao.NovaTroca,
+                "Teste",
+                "Notificação de teste"));
         _service = new Application.Services.InscricaoService(
             _inscricaoRepositoryMock.Object,
             _trilhaRepositoryMock.Object,
