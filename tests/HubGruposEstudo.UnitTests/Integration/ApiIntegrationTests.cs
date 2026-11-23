@@ -24,6 +24,16 @@ public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Notificacoes_DeveExigirAutenticacao()
+    {
+        using var client = CreateClient();
+
+        var response = await client.GetAsync("/api/notificacoes");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Auth_DeveRegistrarEAutenticarUsuario()
     {
         using var client = CreateClient();
@@ -54,6 +64,9 @@ public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 
         var perfil = await client.GetAsync("/api/usuarios/me");
         Assert.Equal(HttpStatusCode.OK, perfil.StatusCode);
+
+        var notificacoes = await client.GetAsync("/api/notificacoes");
+        Assert.Equal(HttpStatusCode.OK, notificacoes.StatusCode);
     }
 
     private HttpClient CreateClient()

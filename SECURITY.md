@@ -24,6 +24,7 @@ Até existir um canal privado específico configurado no GitHub, o reporte deve 
 - Cadastro e login são anônimos por necessidade funcional e recebem rate limiting.
 - Criação de habilidades exige o papel de administrador.
 - O perfil público não expõe email nem hash de senha.
+- Notificações são filtradas pelo `UsuarioId` autenticado; não é permitido ler ou alterar notificações de outra pessoa.
 
 ### Proteção contra abuso
 

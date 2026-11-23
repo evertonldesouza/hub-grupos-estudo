@@ -61,6 +61,7 @@
         <button class="nav-item active" data-section="dashboard"><span>◈</span> Visão geral</button>
         <button class="nav-item" data-section="tracks"><span>▣</span> Trilhas</button>
         <button class="nav-item" data-section="community"><span>◎</span> Comunidade</button>
+        <button class="nav-item" data-section="notifications"><span>♢</span><span class="nav-label">Notificações</span><b id="sidebar-notification-badge" class="notification-badge hidden">0</b></button>
         <button class="nav-item" data-section="profile"><span>◇</span> Meu perfil</button>
       </nav>
       <div class="sidebar-bottom">
@@ -73,6 +74,7 @@
       <header class="topbar">
         <div class="mobile-brand"><span class="brand-mark small">H</span> hub<span class="brand-dot">.</span></div>
         <div class="topbar-spacer"></div>
+        <button id="notification-button" class="notification-button" data-section="notifications" aria-label="Abrir notificações"><span>♢</span><b id="notification-badge" class="notification-badge hidden">0</b></button>
         <div class="topbar-user"><div class="avatar" id="header-avatar">?</div><div><strong id="header-name">Estudante</strong><small id="header-level">Nível 1</small></div></div>
       </header>
 
@@ -90,6 +92,11 @@
         </section>
 
         <section id="section-community" class="page-section"><div class="section-heading"><div><p class="eyebrow">APRENDER JUNTOS</p><h1>Comunidade</h1><p class="muted">Encontre pessoas, veja o que elas ensinam e construa trocas.</p></div></div><div class="community-grid"><div class="panel"><div class="panel-heading"><h2>Pessoas no hub</h2><input id="user-search" class="compact-search" type="search" placeholder="Buscar nome"></div><div id="users-list" class="user-list"></div></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">CONHECIMENTO EM MOVIMENTO</p><h2>Minhas trocas</h2></div></div><div id="trades-list" class="trade-list"></div></div></div><div class="panel trade-create-panel"><div class="panel-heading"><div><p class="eyebrow">PROPONHA UMA TROCA</p><h2>Compartilhe o que você sabe</h2></div></div><form id="trade-form" class="form-grid"><label>Pessoa<select id="trade-user-select" name="usuarioBId" required></select></label><label>Minha trilha<select id="trade-my-track" name="trilhaAId" required></select></label><label>Habilidade que ofereço<select id="trade-my-skill" name="habilidadeAId" required></select></label><label>Trilha da pessoa<select id="trade-their-track" name="trilhaBId" required></select></label><label>Habilidade que quero receber<select id="trade-their-skill" name="habilidadeBId" required></select></label><div class="trade-submit"><button class="button primary" type="submit">Enviar proposta <span>→</span></button></div></form></div></section>
+
+        <section id="section-notifications" class="page-section">
+          <div class="section-heading"><div><p class="eyebrow">ACOMPANHE O HUB</p><h1>Notificações</h1><p class="muted">Veja as novidades sobre suas trocas, trilhas e conquistas.</p></div><button class="button secondary" data-notification-action="read-all">Marcar todas como lidas</button></div>
+          <div class="panel"><div class="panel-heading"><div><p class="eyebrow">ATUALIZAÇÕES RECENTES</p><h2>Sua atividade</h2></div><span id="notifications-count" class="muted"></span></div><div id="notifications-list" class="notification-list"></div></div>
+        </section>
 
         <section id="section-profile" class="page-section"><div class="section-heading"><div><p class="eyebrow">SEU ESPAÇO</p><h1>Meu perfil</h1><p class="muted">Mostre à comunidade o que você sabe e acompanhe suas conquistas.</p></div></div><div class="profile-grid"><div class="panel profile-card"><div class="profile-hero"><div class="avatar large" id="profile-avatar">?</div><div><h2 id="profile-name">Estudante</h2><p id="profile-meta" class="muted">Nível 1 · 0 XP</p></div></div><form id="profile-form" class="stack-form"><label>Nome<input name="nome" id="profile-name-input" required maxlength="100"></label><label>Bio<textarea name="bio" id="profile-bio-input" maxlength="500" rows="3" placeholder="Conte um pouco sobre o que você está aprendendo..."></textarea></label><button class="button primary" type="submit">Salvar perfil</button></form></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">O QUE VOCÊ ENSINA</p><h2>Minhas habilidades</h2></div></div><div id="skills-list" class="skills-list"></div><button id="save-skills" class="button secondary">Atualizar habilidades</button></div><div class="panel"><div class="panel-heading"><div><p class="eyebrow">MARCAS DA JORNADA</p><h2>Conquistas</h2></div></div><div id="profile-achievements" class="achievement-list full"></div></div></div></section>
       </div>

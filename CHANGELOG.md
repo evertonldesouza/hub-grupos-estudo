@@ -8,11 +8,14 @@ Use esta seção durante o desenvolvimento. Mova os itens para uma versão no mo
 
 ### Added
 
-- espaço reservado para a próxima funcionalidade;
+- notificações persistidas para propostas e mudanças de estado de trocas;
+- notificações de inscrição, progresso e conquistas;
+- API autenticada para listar, paginar e marcar notificações como lidas;
+- central de notificações na interface web.
 
 ### Changed
 
-- espaço reservado para melhorias compatíveis;
+- ações de troca e progresso passam a registrar eventos para o usuário relacionado;
 
 ### Fixed
 
@@ -20,7 +23,7 @@ Use esta seção durante o desenvolvimento. Mova os itens para uma versão no mo
 
 ### Security
 
-- registre aqui mudanças de autenticação, autorização, secrets ou dependências.
+- notificações são consultadas e alteradas somente pelo usuário proprietário.
 
 ## [1.0.0] - 2026-10-29
 

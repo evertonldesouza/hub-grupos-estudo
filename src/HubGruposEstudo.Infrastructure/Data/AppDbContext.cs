@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Conquista> Conquistas { get; set; }
     public DbSet<ConquistaUsuario> ConquistaUsuarios { get; set; }
     public DbSet<UsuarioHabilidade> UsuarioHabilidades { get; set; }
+    public DbSet<Notificacao> Notificacoes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,6 +182,33 @@ public class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(uh => uh.HabilidadeId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Notificacao>(entity =>
+        {
+            entity.ToTable("notificacoes");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Tipo)
+                  .IsRequired()
+                  .HasConversion<string>();
+            entity.Property(n => n.Titulo)
+                  .IsRequired()
+                  .HasMaxLength(120);
+            entity.Property(n => n.Mensagem)
+                  .IsRequired()
+                  .HasMaxLength(500);
+            entity.Property(n => n.RecursoTipo)
+                  .HasMaxLength(50);
+            entity.Property(n => n.Lida)
+                  .HasDefaultValue(false);
+            entity.Property(n => n.CriadaEm)
+                  .IsRequired();
+            entity.HasIndex(n => new { n.UsuarioId, n.Lida, n.CriadaEm });
+
+            entity.HasOne(n => n.Usuario)
+                  .WithMany(u => u.Notificacoes)
+                  .HasForeignKey(n => n.UsuarioId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

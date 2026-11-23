@@ -10,6 +10,8 @@ Localizados em `tests/HubGruposEstudo.UnitTests/Services`:
 
 - executam serviços isoladamente;
 - usam Moq para repositórios e dependências;
+- `NotificacaoServiceTests` cobre paginação, contagem de não lidas, propriedade da notificação e marcação como lida;
+- verificam que os eventos de trocas e progresso criam notificações para o destinatário correto;
 - cobrem sucesso, autorização, validação e transições inválidas;
 - não precisam de banco nem de servidor HTTP.
 
@@ -17,7 +19,7 @@ Localizados em `tests/HubGruposEstudo.UnitTests/Services`:
 
 Localizados em `tests/HubGruposEstudo.UnitTests/Integration`:
 
-- `ApiIntegrationTests` sobe a API com `WebApplicationFactory` e valida health, cadastro, login e perfil autenticado;
+- `ApiIntegrationTests` sobe a API com `WebApplicationFactory` e valida health, cadastro, login, perfil autenticado e proteção do endpoint de notificações;
 - `PostgresIntegrationTests` aplica migrations e verifica conexão e acesso às tabelas;
 - o ambiente `Testing` usa PostgreSQL, não um banco falso, para detectar incompatibilidades de provider e schema;
 - os testes são serializados porque compartilham o mesmo banco descartável.
@@ -85,6 +87,7 @@ Uma funcionalidade só está pronta quando:
 
 - regras de negócio têm testes unitários;
 - endpoints têm testes de integração quando atravessam autenticação, serialização ou banco;
+- notificações testam isolamento por usuário e transições de lida/não lida;
 - casos de erro e autorização estão cobertos;
 - migrations e seed foram considerados, se houver alteração de modelo;
 - o CI passa sem depender de configuração local;
